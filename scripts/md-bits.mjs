@@ -181,19 +181,42 @@ export const DOC_FILES = [
 if (import.meta.url === "file://" + process.argv[1]) {
   const args = process.argv.slice(2);
   const check = args.includes("--check");
+  const force = args.includes("--force");
   const only = args.filter((a) => !a.startsWith("--"));
   const files = only.length ? only : DOC_FILES;
   let bad = 0;
+  let refused = 0;
   for (const rel of files) {
     const dialect = dialectOfDoc(rel);
     const source = readFileSync(join(ROOT, rel), "utf8");
+    const bitified = glyphDensity(source) >= 0.5;
+
+    if (check && bitified) {
+      try {
+        const plain = transformDoc(source, dialect, "decode");
+        const again = encodeDoc(plain, dialect);
+        if (again !== source) { bad += 1; console.error("解回再编码不一致：" + rel); }
+      } catch {
+        bad += 1;
+        console.error("解不回来：" + rel);
+      }
+      continue;
+    }
+
+    if (!check && bitified && !force) {
+      refused += 1;
+      console.error("拒绝二次编码：" + rel + "（看着已经位串化了；确实要重编码请加 --force）");
+      continue;
+    }
+
     const encoded = encodeDoc(source, dialect);
     const back = decodeDoc(encoded, dialect);
     if (back !== source) { bad += 1; console.error("往返失败：" + rel); continue; }
     if (!check) { writeFileSync(join(ROOT, rel), encoded); console.log("已编码 " + rel + "（" + dialect + "，" + source.length + " → " + encoded.length + " 字符）"); }
   }
   if (check) console.log(bad ? "往返失败 " + bad + " 份" : "往返通过：" + files.length + " 份文档");
-  process.exit(bad ? 1 : 0);
+  if (refused) console.error("跳过 " + refused + " 份已位串化的文件");
+  process.exit(bad || refused ? 1 : 0);
 }
 
 export { relative, mkdirSync };

@@ -121,8 +121,8 @@ class Parser {
     return bits;
   }
 
-  /** program = { classDecl | entryDecl } EOF */
-  parseProgram(): Program {
+  /** program = { classDecl | entryDecl } EOF；入口可以缺（库文件），由调用方决定要不要报 */
+  parseProgram(): ParsedUnit {
     const classes: ClassDecl[] = [];
     const entries: EntryDecl[] = [];
     for (;;) {
@@ -144,10 +144,7 @@ class Parser {
       }
       fail(CODE.Syntax, posOf(token), `语法错误：顶层只允许 咕咕！ 类 或 咕咕嘎嘎！ 入口，见到${describe(token)}`);
     }
-    if (entries.length === 0) {
-      fail(CODE.NoEntry, null, "缺少入口：程序需要一个 咕咕嘎嘎！ 块");
-    }
-    return { kind: "Program", classes, entry: entries[0] };
+    return { classes, entry: entries[0] ?? null };
   }
 
   /** classDecl = "咕咕！" name [ "：" nameVAL ] NL INDENT { fieldDecl | methodDecl } DEDENT */
@@ -422,13 +419,32 @@ class Parser {
   }
 }
 
-/** 记号 -> AST（语法错误 E2001/E2002；没有入口时 E3003） */
-export function parse(tokens: Token[]): Program {
-  return new Parser(tokens).parseProgram();
+/** 单个文件的解析结果：类表 + 可能缺席的入口。 */
+export interface ParsedUnit {
+  classes: ClassDecl[];
+  entry: EntryDecl | null;
 }
 
-/** SPEC §9 的静态检查：类名重复、入口个数、继承 */
-export function validate(program: Program): void {
+/** 记号 -> AST（语法错误 E2001/E2002；没有入口时 E3003） */
+export function parse(tokens: Token[]): Program {
+  const unit = new Parser(tokens).parseProgram();
+  if (unit.entry === null) {
+    fail(CODE.NoEntry, null, "缺少入口：程序需要一个 咕咕嘎嘎！ 块");
+  }
+  return { kind: "Program", classes: unit.classes, entry: unit.entry };
+}
+
+/** 源码 -> 单文件结果（入口缺失不在这一层报错，供多文件载入器合并用）。 */
+export function parseUnit(src: string): ParsedUnit {
+  return new Parser(tokenize(src)).parseProgram();
+}
+
+/**
+ * SPEC §9 的静态检查：类名重复、入口个数、继承。
+ * hidden 是「存在但不属于可见范围」的类索引（类名 -> 文件名），只用来把
+ * 「父类未定义」说得更准；不传时行为与单文件完全一致。
+ */
+export function validate(program: Program, hidden?: ReadonlyMap<string, string>): void {
   const byName = new Map<string, ClassDecl>();
   for (const cls of program.classes) {
     if (byName.has(cls.name)) {
@@ -443,7 +459,9 @@ export function validate(program: Program): void {
 
   for (const cls of program.classes) {
     if (cls.parent !== null && !byName.has(cls.parent)) {
-      fail(CODE.UnknownParent, cls.pos, `父类未定义：“${cls.parent}”`);
+      const where = hidden?.get(cls.parent);
+      const hint = where === undefined ? "" : `（在 ${where} 定义，但对本文件不可见）`;
+      fail(CODE.UnknownParent, cls.pos, `父类未定义：“${cls.parent}”${hint}`);
     }
   }
 

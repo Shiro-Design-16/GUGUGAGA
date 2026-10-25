@@ -14,8 +14,11 @@ import { EXIT, GgError, frameOfError } from "./errors.ts";
 import type { Dialect } from "./keywords.ts";
 import { dialectOfFile, hasProgramSuffix, renderBits } from "./keywords.ts";
 import { interpret } from "./interp.ts";
-import { parseSource } from "./parser.ts";
+import { validate } from "./parser.ts";
+import { loadProject, stripShebang } from "./project.ts";
 import { encodeDiag, EVENT } from "./wire.ts";
+
+export { stripShebang } from "./project.ts";
 
 /** 帮助正文（code 22 的帧正文）。它是数据，不是屏幕上的人话。 */
 const USAGE = [
@@ -102,16 +105,6 @@ function reportError(err: unknown, dialect: Dialect = "zh"): number {
 }
 
 /**
- * 剥掉首行的 #! 行（替换成空行，保住行号）。
- * 只为让 .咕咕 文件能当可执行脚本；# 不进语言本身，词法器仍然拒收它。
- */
-export function stripShebang(source: string): string {
-  if (!source.startsWith("#!")) return source;
-  const nl = source.indexOf("\n");
-  return nl === -1 ? "\n" : "\n" + source.slice(nl + 1);
-}
-
-/**
  * 咕/嘎 位串 → 步数上限：咕=0、嘎=1，MSB 在前，这就是数值本身（不是十进制）。
  * 空串 / 含其它字符 / 为 0 → null（调用方报用法错误帧）。
  * 超过 Number.MAX_SAFE_INTEGER 时钳到 MAX_SAFE_INTEGER：解释器按 number 计步，
@@ -169,10 +162,15 @@ function runCommand(argv: string[], presetMaxSteps?: number): number {
   if (raw === null) return EXIT.USAGE;
   const source = stripShebang(raw);
   try {
-    const program = parseSource(source);
-    interpret(program, {
+    const project = loadProject(parsed.file, source);
+    validate(project.program, project.hidden);
+    interpret(project.program, {
       maxSteps: parsed.maxSteps,
       stdin: readStdin(),
+      hintClass: (className: string): string | undefined => {
+        const where = project.hidden.get(className);
+        return where === undefined ? undefined : `在 ${where} 定义，但对本文件不可见`;
+      },
       write: (bits: string): void => {
         process.stdout.write(renderBits(bits, dialect));
       },
@@ -191,7 +189,8 @@ function checkCommand(argv: string[]): number {
   if (raw === null) return EXIT.USAGE;
   const source = stripShebang(raw);
   try {
-    parseSource(source);
+    const project = loadProject(parsed.file, source);
+    validate(project.program, project.hidden);
     return EXIT.OK;
   } catch (err) {
     return reportError(err, dialect);

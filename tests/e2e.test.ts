@@ -226,3 +226,13 @@ test("多方言样例：check 对两份方言样例完全静默", () => {
     assert.equal(result.stderr, "", name + "：check 成功应完全静默");
   }
 });
+test("多文件工程：入口借到祖先目录里的库", () => {
+  const file = path.join("demos", "multifile", "app", "main.咕咕");
+  const result = gg(["run", file]);
+  assert.equal(result.status, 0, "多文件示例应能跑通，stderr=" + result.stderr);
+  assert.equal(result.stdout, GU.repeat(63) + GA, "应输出整数 1 的 64 位补码");
+  assert.equal(result.stderr, "", "成功运行时 stderr 应为空");
+  const checked = gg(["check", file]);
+  assert.equal(checked.status, 0, "check 也应通过，stderr=" + checked.stderr);
+  assert.equal(checked.stdout + checked.stderr, "", "check 成功应完全静默");
+});

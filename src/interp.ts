@@ -20,6 +20,8 @@ export interface RunOptions {
   maxSteps?: number;
   stdin?: string;
   write?: (bits: string) => void;
+  /** 类名不在可见范围内时补一句「它其实在哪」，只影响诊断文案 */
+  hintClass?: (className: string) => string | undefined;
 }
 
 const DEFAULT_MAX_STEPS = 5_000_000;
@@ -309,6 +311,13 @@ export function interpret(program: Program, opts: RunOptions = {}): void {
     const args: Value[] = [];
     for (const arg of e.args) args.push(evalExpr(arg));
 
+    if (!classes.has(e.className)) {
+      const hint = opts.hintClass?.(e.className);
+      if (hint !== undefined) {
+        throw new GgError(CODE.UnknownParent, e.pos, `类 ${e.className} 未定义（${hint}）`);
+      }
+    }
+
     const chain = chainOf(e.className, e.pos);
     const obj: GgObject = { cls: e.className, fields: new Map() };
 
@@ -427,6 +436,10 @@ export function interpret(program: Program, opts: RunOptions = {}): void {
 
   function execBlock(body: Stmt[]): void {
     for (const stmt of body) execStmt(stmt);
+  }
+
+  if (program.entry === null) {
+    throw new GgError(CODE.NoEntry, null, "缺少入口：程序需要一个 咕咕嘎嘎！ 块");
   }
 
   frames.push({ vars: new Map(), self: null });

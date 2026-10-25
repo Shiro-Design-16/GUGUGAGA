@@ -11,7 +11,8 @@ export interface Pos {
 export interface Program {
   kind: "Program";
   classes: ClassDecl[];
-  entry: EntryDecl;
+  /** 多文件工程里库文件没有入口，合并后再查；单文件解析保证非 null（validate 兜底） */
+  entry: EntryDecl | null;
 }
 
 export interface ClassDecl {
