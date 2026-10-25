@@ -1,0 +1,17 @@
+name: 测试
+
+# 零依赖：没有 install 步骤，直接跑四组测试。
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: 语言内核、翻译器、VS Code 扩展、译文一致性
+        run: npm run test:all

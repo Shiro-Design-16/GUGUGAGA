@@ -1,0 +1,16 @@
+{
+  "name": "gugugaga-translator",
+  "version": "1.0.0",
+  "private": true,
+  "description": "咕嘎翻译器：把咕咕嘎嘎语的裸位流解码成人可读文本，也能反向编码",
+  "type": "module",
+  "imports": {
+    "#cli": "./src/cli.ts"
+  },
+  "bin": {
+    "ggt": "bin/ggt.ts"
+  },
+  "scripts": {
+    "test": "node --test \"tests/**/*.test.ts\""
+  }
+}

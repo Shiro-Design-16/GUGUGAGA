@@ -1,0 +1,12 @@
+# macOS
+.DS_Store
+
+# 依赖（本项目零依赖，装也装不出东西来）
+node_modules/
+
+# 构建产物：.vsix 由 vscode/build-vsix.sh 现做，走 GitHub Releases 分发
+*.vsix
+
+# 本地临时
+*.log
+.vscode-test/

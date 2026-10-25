@@ -1,0 +1,40 @@
+{
+  "name": "gugugaga",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "咕咕嘎嘎语：用位名 咕/グ/GU 与 嘎/ガ/GA（三方言逐位置等价）加 ！ ？ ： 空格 换行 缩进 写成的纯 OOP 语言",
+  "bin": {
+    "gggg": "bin/gg.ts",
+    "gg": "bin/gg.ts",
+    "咕咕嘎嘎": "bin/gg.ts",
+    "ググガガ": "bin/gg.ts"
+  },
+  "engines": {
+    "node": ">=23"
+  },
+  "scripts": {
+    "test": "node --test \"tests/**/*.test.ts\"",
+    "test:vscode": "node --test \"vscode/gugugaga/tests/*.test.js\"",
+    "test:all": "node --test \"tests/**/*.test.ts\" && (cd translator && node --test \"tests/**/*.test.ts\") && node --test \"vscode/gugugaga/tests/*.test.js\" && node scripts/check-translations.mjs",
+    "test:i18n": "node scripts/check-translations.mjs"
+  },
+  "license": "MIT",
+  "author": "Shiro-Design-16",
+  "homepage": "https://github.com/Shiro-Design-16/GUGUGAGA#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Shiro-Design-16/GUGUGAGA.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Shiro-Design-16/GUGUGAGA/issues"
+  },
+  "keywords": [
+    "gugugaga",
+    "esolang",
+    "programming-language",
+    "oop",
+    "typescript",
+    "zero-dependency"
+  ]
+}

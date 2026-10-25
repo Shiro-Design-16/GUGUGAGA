@@ -1,0 +1,5 @@
+# 开发用文件不进 .vsix
+tests/**
+CONTRACT.md
+*.vsix
+.vscode/**

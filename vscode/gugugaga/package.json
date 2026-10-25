@@ -1,0 +1,118 @@
+{
+  "name": "gugugaga-language",
+  "displayName": "咕咕嘎嘎",
+  "description": "咕咕嘎嘎！ 咕嘎咕？ 嘎咕嘎嘎",
+  "version": "1.0.0",
+  "publisher": "gugugaga",
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Linters"
+  ],
+  "main": "./src/extension.js",
+  "activationEvents": [
+    "onLanguage:gugugaga",
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "gugugaga",
+        "aliases": [
+          "咕咕嘎嘎",
+          "ググガガ"
+        ],
+        "extensions": [
+          ".咕咕",
+          ".ググ",
+          ".ググ",
+          ".gu",
+          ".gugugaga"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "gugugaga",
+        "scopeName": "source.gugugaga",
+        "path": "./syntaxes/gugugaga.tmLanguage.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "gugugaga",
+        "path": "./snippets/gugugaga.json"
+      }
+    ],
+    "configuration": {
+      "title": "咕咕嘎嘎",
+      "properties": {
+        "gugugaga.cliPath": {
+          "type": "string",
+          "default": "咕咕嘎嘎",
+          "scope": "machine"
+        },
+        "gugugaga.nodePath": {
+          "type": "string",
+          "default": "node",
+          "scope": "machine"
+        },
+        "gugugaga.checkOnChange": {
+          "type": "boolean",
+          "default": true,
+          "scope": "resource"
+        },
+        "gugugaga.debounceMs": {
+          "type": "number",
+          "default": 350,
+          "minimum": 0,
+          "scope": "resource"
+        },
+        "gugugaga.maxSteps": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "default": null,
+          "minimum": 1,
+          "scope": "resource"
+        }
+      }
+    },
+    "commands": [
+      {
+        "command": "gugugaga.run",
+        "title": "咕咕嘎嘎！ 咕咕嘎嘎",
+        "icon": "$(play)"
+      },
+      {
+        "command": "gugugaga.checkFile",
+        "title": "咕咕嘎嘎！ 嘎嘎"
+      },
+      {
+        "command": "gugugaga.showOutput",
+        "title": "咕咕嘎嘎！ 咕："
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "gugugaga.run",
+          "when": "editorLangId == gugugaga",
+          "group": "navigation@1",
+          "icon": "$(play)"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "gugugaga.run",
+          "when": "editorLangId == gugugaga",
+          "group": "navigation@1"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,336 @@
+{
+  "scopeName": "source.gugugaga",
+  "patterns": [
+    {
+      "match": "(^|[ 　]+)(?:咕|グ|ぐ|[Gg][Uu])(?:咕|グ|ぐ|[Gg][Uu])(?:嘎|ガ|が|[Gg][Aa])(?:嘎|ガ|が|[Gg][Aa])[！!](?:[ 　]*((?:咕|グ|ぐ|[Gg][Uu]|嘎|ガ|が|[Gg][Aa])+))?",
+      "name": "keyword.declaration.entry.gugugaga",
+      "captures": {
+        "1": {
+          "name": "punctuation.separator.colon.gugugaga"
+        },
+        "2": {
+          "name": "entity.name.function.gugugaga"
+        }
+      }
+    },
+    {
+      "match": "(^|[ 　]+)(?:咕|グ|ぐ|[Gg][Uu])(?:咕|グ|ぐ|[Gg][Uu])(?:嘎|ガ|が|[Gg][Aa])[！!](?:[ 　]*((?:咕|グ|ぐ|[Gg][Uu]|嘎|ガ|が|[Gg][Aa])+))?",
+      "name": "keyword.declaration.method.gugugaga",
+      "captures": {
+        "1": {
+          "name": "punctuation.separator.colon.gugugaga"
+        },
+        "2": {
+          "name": "entity.name.function.gugugaga"
+        }
+      }
+    },
+    {
+      "match": "(^|[ 　]+)(?:咕|グ|ぐ|[Gg][Uu])(?:咕|グ|ぐ|[Gg][Uu])[！!][？?](?:[ 　]*((?:咕|グ|ぐ|[Gg][Uu]|嘎|ガ|が|[Gg][Aa])+)[？?]?)?",
+      "name": "keyword.declaration.bind.gugugaga",
+      "captures": {
+        "1": {
+          "name": "punctuation.separator.colon.gugugaga"
+        },
+        "2": {
+          "name": "variable.other.gugugaga"
+        }
+      }
+    },
+    {
+      "match": "(^|[ 　]+)(?:咕|グ|ぐ|[Gg][Uu])(?:咕|グ|ぐ|[Gg][Uu])[！!](?:[ 　]*((?:咕|グ|ぐ|[Gg][Uu]|嘎|ガ|が|[Gg][Aa])+))?",
+      "name": "keyword.declaration.class.gugugaga",
+      "captures": {
+        "1": {
+          "name": "punctuation.separator.colon.gugugaga"
+        },
+        "2": {
+          "name": "entity.name.class.gugugaga"
+        }
+      }
+    },
+    {
+      "match": "(^|[ 　]+|[：:])(?:咕|グ|ぐ|[Gg][Uu])(?:嘎|ガ|が|[Gg][Aa])(?:嘎|ガ|が|[Gg][Aa])[！!](?:[ 　]*((?:咕|グ|ぐ|[Gg][Uu]|嘎|ガ|が|[Gg][Aa])+)[？?]?)?",
+      "name": "keyword.operator.new.gugugaga",
+      "captures": {
+        "1": {
+          "name": "punctuation.separator.colon.gugugaga"
+        },
+        "2": {
+          "name": "entity.name.class.gugugaga"
+        }
+      }
+    },
+    {
+      "match": "(^|[ 　]+|[：:])(?!(?:(?:咕|グ|ぐ|[Gg][Uu])(?:嘎|ガ|が|[Gg][Aa])(?:嘎|ガ|が|[Gg][Aa])(?:咕|グ|ぐ|[Gg][Uu])|(?:咕|グ|ぐ|[Gg][Uu])(?:嘎|ガ|が|[Gg][Aa])(?:咕|グ|ぐ|[Gg][Uu])(?:咕|グ|ぐ|[Gg][Uu])|(?:咕|グ|ぐ|[Gg][Uu])(?:嘎|ガ|が|[Gg][Aa])(?:咕|グ|ぐ|[Gg][Uu])(?:嘎|ガ|が|[Gg][Aa])|(?:咕|グ|ぐ|[Gg][Uu])(?:咕|グ|ぐ|[Gg][Uu])(?:咕|グ|ぐ|[Gg][Uu])(?:咕|グ|ぐ|[Gg][Uu])|(?:咕|グ|ぐ|[Gg][Uu])(?:咕|グ|ぐ|[Gg][Uu])(?:嘎|ガ|が|[Gg][Aa])(?:咕|グ|ぐ|[Gg][Uu])|(?:嘎|ガ|が|[Gg][Aa])(?:嘎|ガ|が|[Gg][Aa])(?:嘎|ガ|が|[Gg][Aa])(?:嘎|ガ|が|[Gg][Aa])|(?:咕|グ|ぐ|[Gg][Uu])(?:咕|グ|ぐ|[Gg][Uu])(?:咕|グ|ぐ|[Gg][Uu])|(?:咕|グ|ぐ|[Gg][Uu])(?:咕|グ|ぐ|[Gg][Uu])(?:嘎|ガ|が|[Gg][Aa])|(?:咕|グ|ぐ|[Gg][Uu])(?:嘎|ガ|が|[Gg][Aa])(?:咕|グ|ぐ|[Gg][Uu])|(?:咕|グ|ぐ|[Gg][Uu])(?:嘎|ガ|が|[Gg][Aa])(?:嘎|ガ|が|[Gg][Aa])|(?:嘎|ガ|が|[Gg][Aa])(?:嘎|ガ|が|[Gg][Aa])(?:嘎|ガ|が|[Gg][Aa])|(?:嘎|ガ|が|[Gg][Aa])(?:嘎|ガ|が|[Gg][Aa])(?:咕|グ|ぐ|[Gg][Uu])|(?:咕|グ|ぐ|[Gg][Uu])(?:咕|グ|ぐ|[Gg][Uu])|(?:咕|グ|ぐ|[Gg][Uu])(?:嘎|ガ|が|[Gg][Aa])|(?:嘎|ガ|が|[Gg][Aa])(?:嘎|ガ|が|[Gg][Aa])|(?:嘎|ガ|が|[Gg][Aa])(?:咕|グ|ぐ|[Gg][Uu])|(?:咕|グ|ぐ|[Gg][Uu]))[？?])((?:咕|グ|ぐ|[Gg][Uu]|嘎|ガ|が|[Gg][Aa])+)[？?]",
+      "name": "variable.other.gugugaga",
+      "captures": {
+        "1": {
+          "name": "punctuation.separator.colon.gugugaga"
+        }
+      }
+    },
+    {
+      "match": "(^|[ 　]+|[：:])(?!(?:(?:咕|グ|ぐ|[Gg][Uu])(?:咕|グ|ぐ|[Gg][Uu])|(?:咕|グ|ぐ|[Gg][Uu])(?:嘎|ガ|が|[Gg][Aa]))[！!][？?])((?:咕|グ|ぐ|[Gg][Uu]|嘎|ガ|が|[Gg][Aa])+)([！!][？?])",
+      "name": "keyword.operator.call.gugugaga",
+      "captures": {
+        "1": {
+          "name": "punctuation.separator.colon.gugugaga"
+        },
+        "2": {
+          "name": "variable.other.gugugaga"
+        }
+      }
+    },
+    {
+      "match": "(^|[ 　]+|[：:])(?!(?:(?:咕|グ|ぐ|[Gg][Uu])(?:咕|グ|ぐ|[Gg][Uu])(?:嘎|ガ|が|[Gg][Aa])(?:嘎|ガ|が|[Gg][Aa])|(?:咕|グ|ぐ|[Gg][Uu])(?:咕|グ|ぐ|[Gg][Uu])(?:嘎|ガ|が|[Gg][Aa])|(?:咕|グ|ぐ|[Gg][Uu])(?:嘎|ガ|が|[Gg][Aa])(?:嘎|ガ|が|[Gg][Aa])|(?:咕|グ|ぐ|[Gg][Uu])(?:咕|グ|ぐ|[Gg][Uu]))[！!])((?:咕|グ|ぐ|[Gg][Uu]|嘎|ガ|が|[Gg][Aa])+)([！!](?![？?]))",
+      "name": "entity.name.function.gugugaga",
+      "captures": {
+        "1": {
+          "name": "punctuation.separator.colon.gugugaga"
+        }
+      }
+    },
+    {
+      "match": "(^|[ 　]+|[：:])(?!(?:(?:嘎|ガ|が|[Gg][Aa])(?:嘎|ガ|が|[Gg][Aa])(?:嘎|ガ|が|[Gg][Aa])(?:嘎|ガ|が|[Gg][Aa])(?:嘎|ガ|が|[Gg][Aa])(?:嘎|ガ|が|[Gg][Aa])(?:嘎|ガ|が|[Gg][Aa])|(?:嘎|ガ|が|[Gg][Aa])(?:嘎|ガ|が|[Gg][Aa])(?:嘎|ガ|が|[Gg][Aa])(?:嘎|ガ|が|[Gg][Aa])(?:嘎|ガ|が|[Gg][Aa])(?:嘎|ガ|が|[Gg][Aa])|(?:嘎|ガ|が|[Gg][Aa])(?:嘎|ガ|が|[Gg][Aa])(?:嘎|ガ|が|[Gg][Aa])(?:嘎|ガ|が|[Gg][Aa])(?:嘎|ガ|が|[Gg][Aa])|(?:嘎|ガ|が|[Gg][Aa])(?:嘎|ガ|が|[Gg][Aa])(?:嘎|ガ|が|[Gg][Aa])(?:嘎|ガ|が|[Gg][Aa])|(?:嘎|ガ|が|[Gg][Aa])(?:嘎|ガ|が|[Gg][Aa])(?:嘎|ガ|が|[Gg][Aa])|(?:嘎|ガ|が|[Gg][Aa])(?:嘎|ガ|が|[Gg][Aa])|(?:咕|グ|ぐ|[Gg][Uu]))(?!(?:咕|グ|ぐ|[Gg][Uu]|嘎|ガ|が|[Gg][Aa])))((?:咕|グ|ぐ|[Gg][Uu]|嘎|ガ|が|[Gg][Aa])+)(?!(?:咕|グ|ぐ|[Gg][Uu]|嘎|ガ|が|[Gg][Aa]|[！!]|[？?]))",
+      "name": "variable.other.gugugaga",
+      "captures": {
+        "1": {
+          "name": "punctuation.separator.colon.gugugaga"
+        }
+      }
+    },
+    {
+      "match": "(^|[ 　]+|[：:])(?:嘎|ガ|が|[Gg][Aa])(?:嘎|ガ|が|[Gg][Aa])(?:嘎|ガ|が|[Gg][Aa])(?:嘎|ガ|が|[Gg][Aa])[？?](?:咕|グ|ぐ|[Gg][Uu]|嘎|ガ|が|[Gg][Aa])*",
+      "name": "constant.numeric.bits.gugugaga",
+      "captures": {
+        "1": {
+          "name": "punctuation.separator.colon.gugugaga"
+        }
+      }
+    },
+    {
+      "match": "(^|[ 　]+|[：:])(?:嘎|ガ|が|[Gg][Aa])(?:嘎|ガ|が|[Gg][Aa])(?:嘎|ガ|が|[Gg][Aa])[？?](?:咕|グ|ぐ|[Gg][Uu]|嘎|ガ|が|[Gg][Aa])*",
+      "name": "constant.numeric.integer.gugugaga",
+      "captures": {
+        "1": {
+          "name": "punctuation.separator.colon.gugugaga"
+        }
+      }
+    },
+    {
+      "match": "(^|[ 　]+|[：:])(?:嘎|ガ|が|[Gg][Aa])(?:嘎|ガ|が|[Gg][Aa])[？?]",
+      "name": "constant.language.boolean.gugugaga",
+      "captures": {
+        "1": {
+          "name": "punctuation.separator.colon.gugugaga"
+        }
+      }
+    },
+    {
+      "match": "(^|[ 　]+|[：:])(?:嘎|ガ|が|[Gg][Aa])(?:嘎|ガ|が|[Gg][Aa])(?:咕|グ|ぐ|[Gg][Uu])[？?]",
+      "name": "constant.language.boolean.gugugaga",
+      "captures": {
+        "1": {
+          "name": "punctuation.separator.colon.gugugaga"
+        }
+      }
+    },
+    {
+      "match": "(^|[ 　]+|[：:])(?:嘎|ガ|が|[Gg][Aa])(?:咕|グ|ぐ|[Gg][Uu])[？?]",
+      "name": "constant.language.null.gugugaga",
+      "captures": {
+        "1": {
+          "name": "punctuation.separator.colon.gugugaga"
+        }
+      }
+    },
+    {
+      "match": "(^|[ 　]+|[：:])(?:嘎|ガ|が|[Gg][Aa])(?:嘎|ガ|が|[Gg][Aa])(?:嘎|ガ|が|[Gg][Aa])(?:嘎|ガ|が|[Gg][Aa])(?:嘎|ガ|が|[Gg][Aa])(?:嘎|ガ|が|[Gg][Aa])(?:嘎|ガ|が|[Gg][Aa])",
+      "name": "keyword.other.read.gugugaga",
+      "captures": {
+        "1": {
+          "name": "punctuation.separator.colon.gugugaga"
+        }
+      }
+    },
+    {
+      "match": "(^|[ 　]+|[：:])(?:嘎|ガ|が|[Gg][Aa])(?:嘎|ガ|が|[Gg][Aa])(?:嘎|ガ|が|[Gg][Aa])(?:嘎|ガ|が|[Gg][Aa])(?:嘎|ガ|が|[Gg][Aa])(?:嘎|ガ|が|[Gg][Aa])",
+      "name": "keyword.other.this.gugugaga",
+      "captures": {
+        "1": {
+          "name": "punctuation.separator.colon.gugugaga"
+        }
+      }
+    },
+    {
+      "match": "(^|[ 　]+)(?:嘎|ガ|が|[Gg][Aa])(?:嘎|ガ|が|[Gg][Aa])(?:嘎|ガ|が|[Gg][Aa])(?:嘎|ガ|が|[Gg][Aa])(?:嘎|ガ|が|[Gg][Aa])",
+      "name": "keyword.control.flow.gugugaga",
+      "captures": {
+        "1": {
+          "name": "punctuation.separator.colon.gugugaga"
+        }
+      }
+    },
+    {
+      "match": "(^|[ 　]+)(?:嘎|ガ|が|[Gg][Aa])(?:嘎|ガ|が|[Gg][Aa])(?:嘎|ガ|が|[Gg][Aa])(?:嘎|ガ|が|[Gg][Aa])",
+      "name": "keyword.control.flow.gugugaga",
+      "captures": {
+        "1": {
+          "name": "punctuation.separator.colon.gugugaga"
+        }
+      }
+    },
+    {
+      "match": "(^|[ 　]+)(?:嘎|ガ|が|[Gg][Aa])(?:嘎|ガ|が|[Gg][Aa])(?:嘎|ガ|が|[Gg][Aa])",
+      "name": "keyword.control.flow.gugugaga",
+      "captures": {
+        "1": {
+          "name": "punctuation.separator.colon.gugugaga"
+        }
+      }
+    },
+    {
+      "match": "(^|[ 　]+)(?:嘎|ガ|が|[Gg][Aa])(?:嘎|ガ|が|[Gg][Aa])",
+      "name": "keyword.control.flow.gugugaga",
+      "captures": {
+        "1": {
+          "name": "punctuation.separator.colon.gugugaga"
+        }
+      }
+    },
+    {
+      "match": "(^|[ 　]+)((?:咕|グ|ぐ|[Gg][Uu])(?:嘎|ガ|が|[Gg][Aa]))([！!][？?])",
+      "name": "keyword.other.gugugaga",
+      "captures": {
+        "1": {
+          "name": "punctuation.separator.colon.gugugaga"
+        },
+        "3": {
+          "name": "keyword.operator.call.gugugaga"
+        }
+      }
+    },
+    {
+      "match": "(^|[ 　]+|[：:])(?:咕|グ|ぐ|[Gg][Uu])(?:嘎|ガ|が|[Gg][Aa])(?:嘎|ガ|が|[Gg][Aa])(?:咕|グ|ぐ|[Gg][Uu])[？?]",
+      "name": "keyword.operator.comparison.gugugaga",
+      "captures": {
+        "1": {
+          "name": "punctuation.separator.colon.gugugaga"
+        }
+      }
+    },
+    {
+      "match": "(^|[ 　]+|[：:])(?:咕|グ|ぐ|[Gg][Uu])(?:嘎|ガ|が|[Gg][Aa])(?:咕|グ|ぐ|[Gg][Uu])(?:咕|グ|ぐ|[Gg][Uu])[？?]",
+      "name": "keyword.operator.logical.gugugaga",
+      "captures": {
+        "1": {
+          "name": "punctuation.separator.colon.gugugaga"
+        }
+      }
+    },
+    {
+      "match": "(^|[ 　]+|[：:])(?:咕|グ|ぐ|[Gg][Uu])(?:嘎|ガ|が|[Gg][Aa])(?:咕|グ|ぐ|[Gg][Uu])(?:嘎|ガ|が|[Gg][Aa])[？?]",
+      "name": "keyword.operator.logical.gugugaga",
+      "captures": {
+        "1": {
+          "name": "punctuation.separator.colon.gugugaga"
+        }
+      }
+    },
+    {
+      "match": "(^|[ 　]+|[：:])(?:咕|グ|ぐ|[Gg][Uu])(?:咕|グ|ぐ|[Gg][Uu])(?:咕|グ|ぐ|[Gg][Uu])(?:咕|グ|ぐ|[Gg][Uu])[？?]",
+      "name": "keyword.operator.logical.gugugaga",
+      "captures": {
+        "1": {
+          "name": "punctuation.separator.colon.gugugaga"
+        }
+      }
+    },
+    {
+      "match": "(^|[ 　]+|[：:])(?:咕|グ|ぐ|[Gg][Uu])(?:咕|グ|ぐ|[Gg][Uu])(?:嘎|ガ|が|[Gg][Aa])(?:咕|グ|ぐ|[Gg][Uu])[？?]",
+      "name": "keyword.operator.unary.gugugaga",
+      "captures": {
+        "1": {
+          "name": "punctuation.separator.colon.gugugaga"
+        }
+      }
+    },
+    {
+      "match": "(^|[ 　]+|[：:])(?:咕|グ|ぐ|[Gg][Uu])(?:咕|グ|ぐ|[Gg][Uu])(?:咕|グ|ぐ|[Gg][Uu])[？?]",
+      "name": "keyword.operator.arithmetic.gugugaga",
+      "captures": {
+        "1": {
+          "name": "punctuation.separator.colon.gugugaga"
+        }
+      }
+    },
+    {
+      "match": "(^|[ 　]+|[：:])(?:咕|グ|ぐ|[Gg][Uu])(?:咕|グ|ぐ|[Gg][Uu])(?:嘎|ガ|が|[Gg][Aa])[？?]",
+      "name": "keyword.operator.arithmetic.gugugaga",
+      "captures": {
+        "1": {
+          "name": "punctuation.separator.colon.gugugaga"
+        }
+      }
+    },
+    {
+      "match": "(^|[ 　]+|[：:])(?:咕|グ|ぐ|[Gg][Uu])(?:嘎|ガ|が|[Gg][Aa])(?:咕|グ|ぐ|[Gg][Uu])[？?]",
+      "name": "keyword.operator.comparison.gugugaga",
+      "captures": {
+        "1": {
+          "name": "punctuation.separator.colon.gugugaga"
+        }
+      }
+    },
+    {
+      "match": "(^|[ 　]+|[：:])(?:咕|グ|ぐ|[Gg][Uu])(?:嘎|ガ|が|[Gg][Aa])(?:嘎|ガ|が|[Gg][Aa])[？?]",
+      "name": "keyword.operator.comparison.gugugaga",
+      "captures": {
+        "1": {
+          "name": "punctuation.separator.colon.gugugaga"
+        }
+      }
+    },
+    {
+      "match": "(^|[ 　]+|[：:])(?:咕|グ|ぐ|[Gg][Uu])(?:咕|グ|ぐ|[Gg][Uu])[？?]",
+      "name": "keyword.operator.arithmetic.gugugaga",
+      "captures": {
+        "1": {
+          "name": "punctuation.separator.colon.gugugaga"
+        }
+      }
+    },
+    {
+      "match": "(^|[ 　]+|[：:])(?:咕|グ|ぐ|[Gg][Uu])(?:嘎|ガ|が|[Gg][Aa])[？?]",
+      "name": "keyword.operator.arithmetic.gugugaga",
+      "captures": {
+        "1": {
+          "name": "punctuation.separator.colon.gugugaga"
+        }
+      }
+    },
+    {
+      "match": "(^|[ 　]+|[：:])(?:咕|グ|ぐ|[Gg][Uu])[？?]",
+      "name": "keyword.operator.arithmetic.gugugaga",
+      "captures": {
+        "1": {
+          "name": "punctuation.separator.colon.gugugaga"
+        }
+      }
+    },
+    {
+      "match": "(^|[ 　]+)(?:咕|グ|ぐ|[Gg][Uu])",
+      "name": "keyword.other.gugugaga",
+      "captures": {
+        "1": {
+          "name": "punctuation.separator.colon.gugugaga"
+        }
+      }
+    },
+    {
+      "match": "[：:]",
+      "name": "punctuation.separator.colon.gugugaga"
+    }
+  ]
+}

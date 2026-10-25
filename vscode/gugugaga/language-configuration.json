@@ -1,0 +1,13 @@
+{
+  "comments": {},
+  "folding": {
+    "offSide": true
+  },
+  "indentationRules": {
+    "increaseIndentPattern": "\\s*(：|:)\\s*$",
+    "decreaseIndentPattern": "^\\s*(?:嘎|ガ|が|[Gg][Aa]){2}(?:(?:嘎|ガ|が|[Gg][Aa]){2}){0,2}"
+  },
+  "wordPattern": "[咕嘎！？：グガぐが!?:GgUuAa]+",
+  "autoClosingPairs": [],
+  "surroundingPairs": []
+}
