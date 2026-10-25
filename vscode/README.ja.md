@@ -1,7 +1,7 @@
 <!-- i18n:begin -->
-[中文](README.md) ｜ **日本語** ｜ [English](README.en.md)
+[咕咕](README.md) ｜ **グガグ** ｜ [GUGUGUGUGAGUGA](README.en.md)
 
-> 本ファイルは日本語訳です。内容の正本は中国語版 [README.md](README.md) で、差分があれば中国語版が優先します。
+> グググググガガガグガガグ。グガガグガガググガグ [README.md](README.md) グ、ガガガガガガグガガググガグググガ。
 <!-- i18n:end -->
 
 # 咕咕嘎嘎グガ VS Code ガグガガ
@@ -107,7 +107,7 @@ unzip -p vscode/gugugaga-language.vsix extension.vsixmanifest   # inspect the VS
 
 ```bash
 node --test "vscode/gugugaga/tests/*.test.js"    # 173 extension tests
-npm run test:all                                 # 174 language + 104 translator + 173 extension = 451
+npm run test:all                                 # 176 language + 104 translator + 173 extension = 453
 node scripts/check-translations.mjs              # 24 translated documents, structure and numbers
 ```
 

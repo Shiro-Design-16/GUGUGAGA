@@ -1,7 +1,7 @@
 <!-- i18n:begin -->
-[中文](CHANGELOG.md) ｜ **日本語** ｜ [English](CHANGELOG.en.md)
+[咕咕](CHANGELOG.md) ｜ **グガグ** ｜ [GUGUGUGUGAGUGA](CHANGELOG.en.md)
 
-> 本ファイルは日本語訳です。内容の正本は中国語版 [CHANGELOG.md](CHANGELOG.md) で、差分があれば中国語版が優先します。
+> グググググガガガグガガグ。グガガグガガググガグ [CHANGELOG.md](CHANGELOG.md) グ、ガガガガガガグガガググガグググガ。
 <!-- i18n:end -->
 
 # ガググガ
@@ -42,4 +42,4 @@
 
 ### グググ
 
-- ガガ 174 ガ、グガグググググ 104 ガ、グガ 173 ガ、ガガ 451 ガ。`npm run test:all` ガガガグガグガガガガググガガグガガグググガ。
+- ガガ 176 ガ、グガグググググ 104 ガ、グガ 173 ガ、ガガ 453 ガ。`npm run test:all` ガガガグガグガガガガググガガグガガグググガ。

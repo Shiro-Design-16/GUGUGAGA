@@ -1,7 +1,7 @@
 <!-- i18n:begin -->
-[中文](CONTRACT.md) ｜ **日本語** ｜ [English](CONTRACT.en.md)
+[咕咕](CONTRACT.md) ｜ **グガグ** ｜ [GUGUGUGUGAGUGA](CONTRACT.en.md)
 
-> 本ファイルは日本語訳です。内容の正本は中国語版 [CONTRACT.md](CONTRACT.md) で、差分があれば中国語版が優先します。
+> グググググガガガグガガグ。グガガグガガググガグ [CONTRACT.md](CONTRACT.md) グ、ガガガガガガグガガググガグググガ。
 <!-- i18n:end -->
 # ググガガグガガガグググガ · ガガガガガガガグググ
 

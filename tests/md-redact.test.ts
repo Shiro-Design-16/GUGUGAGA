@@ -172,7 +172,10 @@ test("行内代码里的 HTML 注释标记只是代码，不让后面整段逐�
   assert.ok(!out.includes("这段散文仍然要换"), "标记后面的正文必须继续替换");
   assert.ok(!/[\u3400-\u4DBF\u4E00-\u9FFF]/.test(out.replace(/[\u5495\u560E]/g, "")), "除位名外不留汉字");
   const block = "<!-- i18n:begin -->\n**日本語**：[中文](README.md)\n<!-- i18n:end -->";
-  assert.ok(redactDoc(block, "ja").includes("**日本語**"), "行首的 i18n 头部块整块保留");
+  const lines = redactDoc(block, "ja").split("\n");
+  assert.equal(lines[0], "<!-- i18n:begin -->", "行首的标记行逐字节保留");
+  assert.equal(lines[2], "<!-- i18n:end -->", "块末的标记行逐字节保留");
+  assert.ok(!lines[1].includes("日本語"), "块内的散文照样被替换");
 });
 
 test("en 文档的围栏：英文代码原样，围栏里的中文换成 en 位名（一个汉字两个字符）", () => {
@@ -207,6 +210,67 @@ test("残留散文：产物为 0；可读原文的散文区与围栏里都还有
   const after = residualProse(redactDoc(readable, "zh"), "zh");
   assert.equal(after.prose, "", "产物的散文区不该再剩散文");
   assert.equal(after.code, "", "产物的代码区不该再剩 CJK/假名");
+});
+
+test("i18n 头部块：内容按散文替换，导航行的 label 跟目标文件方言", () => {
+  const source = [
+    "<!-- i18n:begin -->",
+    "[中文](README.md) ｜ **日本語** ｜ [English](README.en.md)",
+    "",
+    "> 本ファイルは日本語訳です。正本は中国語版 [README.md](README.md) です。",
+    "<!-- i18n:end -->",
+    "",
+    "# 本文",
+  ].join("\n");
+  const lines = redactDoc(source, "ja").split("\n");
+  assert.equal(lines[0], "<!-- i18n:begin -->");
+  assert.equal(lines[4], "<!-- i18n:end -->");
+  assert.match(
+    lines[1],
+    /^\[[\u5495\u560E]{2}\]\(README\.md\) ｜ \*\*[\u30B0\u30AC]{3}\*\* ｜ \[(?:GU|GA){7}\]\(README\.en\.md\)$/,
+    "导航行：中文 label 走 zh、日文 label 走 ja、英文 label 走 en，分隔符与链接目标原样",
+  );
+  assert.equal(lines[2], "", "块内空行保留");
+  assert.ok(!lines[3].includes("本ファイル"), "块内说明句必须换成位名");
+  assert.ok(lines[3].includes("[README.md](README.md)"), "说明句里的链接目标原样");
+  assert.equal(residualProse(lines.join("\n"), "ja").prose, "", "块内也算散文区，残留必须为 0");
+});
+
+test("24 份译文产物：头部块两行标记各 1 行、块内容 3 行且已替换、ja/en 同构", () => {
+  const fold = (line: string) =>
+    line
+      .replace(/[\u5495\u560E\u30B0\u30AC\u3050\u304C]+/g, "θ")
+      .replace(/(?:GU|GA)+/g, "θ")
+      .replace(/\.(?:ja|en)\.md/gi, ".L.md")
+      .normalize("NFKC")
+      .replace(/[^A-Za-z0-9]+/g, "θ")
+      .replace(/^θ|θ$/g, "");
+  const blocks: Record<string, string[]> = {};
+  let checked = 0;
+  for (const rel of DOC_FILES) {
+    if (!rel.endsWith(".ja.md") && !rel.endsWith(".en.md")) continue;
+    const file = path.join(ROOT, rel);
+    if (!fs.existsSync(file)) continue;
+    const lines = fs.readFileSync(file, "utf8").split("\n");
+    assert.equal(lines[0], "<!-- i18n:begin -->", rel + " 第 1 行应是 i18n:begin");
+    const close = lines.indexOf("<!-- i18n:end -->", 1);
+    assert.equal(close, 4, rel + " 的头部块应在第 5 行闭合");
+    const block = lines.slice(1, close);
+    assert.equal(block.length, 3, rel + " 的头部块应是导航行 / 空行 / 说明句三行");
+    for (const line of block) assert.ok(line !== "<!-- i18n:begin -->" && line !== "<!-- i18n:end -->", rel + " 块内不该再出现标记行");
+    assert.equal(residualProse(block.join("\n"), dialectOfDoc(rel)).prose, "", rel + " 头部块内残留散文");
+    blocks[rel] = block;
+    checked += 1;
+  }
+  assert.equal(checked, 24, "24 份译文都要检查");
+  for (const rel of Object.keys(blocks)) {
+    if (!rel.endsWith(".en.md")) continue;
+    const jaRel = rel.replace(/\.en\.md$/, ".ja.md");
+    const ja = blocks[jaRel];
+    const en = blocks[rel];
+    assert.ok(ja, jaRel + " 缺少头部块");
+    assert.deepEqual(en.map(fold), ja.map(fold), rel + " 的头部块骨架应与 " + jaRel + " 相同");
+  }
 });
 
 test("真仓库里的 36 份产物：残留散文一律为 0", () => {

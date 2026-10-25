@@ -1,7 +1,7 @@
 <!-- i18n:begin -->
-[中文](SPEC.md) ｜ **日本語** ｜ [English](SPEC.en.md)
+[咕咕](SPEC.md) ｜ **グガグ** ｜ [GUGUGUGUGAGUGA](SPEC.en.md)
 
-> 本ファイルは日本語訳です。内容の正本は中国語版 [SPEC.md](SPEC.md) で、差分があれば中国語版が優先します。
+> グググググガガガグガガグ。グガガグガガググガグ [SPEC.md](SPEC.md) グ、ガガガガガガグガガググガグググガ。
 <!-- i18n:end -->
 
 # ググガガガ · ガガガガ v1.0

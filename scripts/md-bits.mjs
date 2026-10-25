@@ -146,6 +146,9 @@ function stickyRun(re, text, i) {
   return m && m.index === i ? m[0] : null;
 }
 
+/** 文件名形状的 label：没有空白与括号、以已知扩展名结尾（[README.md](...)、[名字对照表.md](...)）。 */
+const PATH_LABEL = /^[^\s[\]()]+\.(?:md|ts|js|mjs|json|yml|yaml|txt|sh)$/;
+
 /** 专有名词 GUGUGAGA（不分大小写，前后不能是字母数字）。 */
 function properAt(text, i) {
   const m = stickyRun(PROPER_AT, text, i);
@@ -218,6 +221,12 @@ export function isNavLine(line) {
   const lead = NAV_LEAD.exec(line);
   if (!lead || !line.includes("](")) return false;
   return /^[：:]/.test(line.slice(lead.index + lead[0].length));
+}
+
+/** i18n 头部块里的语言导航行：[中文](README.md) ｜ **日本語** ｜ [English](README.en.md)。 */
+function isHeaderNavLine(line) {
+  const links = line.match(/\]\([^)]*\)/g);
+  return links !== null && links.length >= 2 && /\*\*[^*]+\*\*/.test(line) && /[|｜]/.test(line);
 }
 
 /** 导航行里链接 label 的方言跟随 target 的后缀；其余行的 label 与本文件同方言。 */
@@ -304,14 +313,17 @@ function transform(text, opts) {
       const link = linkAt(text, i);
       if (link) {
         flush();
-        const inner = transform(link.label, {
-          mode: "prose",
-          dialect: labelDialect(link.target, dialect, nav),
-          nav,
-          replacer: opts.replacer,
-          collect,
-          enGlyphs: opts.enGlyphs,
-        });
+        // 文件名做 label（[README.md](README.md)）：路径/文件名按规范逐字保留，不随方言改写。
+        const inner = PATH_LABEL.test(link.label)
+          ? link.label
+          : transform(link.label, {
+              mode: "prose",
+              dialect: labelDialect(link.target, dialect, nav),
+              nav,
+              replacer: opts.replacer,
+              collect,
+              enGlyphs: opts.enGlyphs,
+            });
         out += link.prefix + inner + link.rest;
         i = link.end;
         continue;
@@ -360,8 +372,9 @@ function fenceCloses(line, marker) {
 }
 
 /**
- * 逐行过文档状态机：围栏块正文与 HTML 注释块是「代码」上下文；围栏行本身（含 info 串）与 i18n 头部块
- * 整块逐字节保留；其余是散文。
+ * 逐行过文档状态机：围栏块正文与 HTML 注释块是「代码」上下文；围栏行本身（含 info 串）与 i18n 头部块的
+ * 两行标记逐字节保留；i18n 块的内容和其余部分一样按散文替换——render 的第三个参数告诉它「这一行在头部块
+ * 里」，头部块的语言导航行据此把链接 label 渲染成目标文件的方言。
  */
 function processDoc(source, dialect, render) {
   const out = [];
@@ -379,8 +392,12 @@ function processDoc(source, dialect, render) {
       continue;
     }
     if (i18n) {
-      out.push(line);
-      if (I18N_END.test(line)) i18n = false;
+      if (I18N_END.test(line)) {
+        i18n = false;
+        out.push(line);
+        continue;
+      }
+      out.push(render(line, "prose", true));
       continue;
     }
     if (I18N_BEGIN.test(line)) {
@@ -411,8 +428,13 @@ function processDoc(source, dialect, render) {
 
 /** 把一份可读文档换成产物。 */
 export function redactDoc(source, dialect) {
-  return processDoc(source, dialect, (line, mode) =>
-    transform(line, { mode, dialect, nav: isNavLine(line), replacer: (run, d) => redactRun(run, d || dialect) }),
+  return processDoc(source, dialect, (line, mode, header) =>
+    transform(line, {
+      mode,
+      dialect,
+      nav: isNavLine(line) || (header === true && isHeaderNavLine(line)),
+      replacer: (run, d) => redactRun(run, d || dialect),
+    }),
   );
 }
 

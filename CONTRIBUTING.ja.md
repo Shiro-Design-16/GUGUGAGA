@@ -1,7 +1,7 @@
 <!-- i18n:begin -->
-[中文](CONTRIBUTING.md) ｜ **日本語** ｜ [English](CONTRIBUTING.en.md)
+[咕咕](CONTRIBUTING.md) ｜ **グガグ** ｜ [GUGUGUGUGAGUGA](CONTRIBUTING.en.md)
 
-> 本ファイルは日本語訳です。内容の正本は中国語版 [CONTRIBUTING.md](CONTRIBUTING.md) で、差分があれば中国語版が優先します。
+> グググググガガガグガガグ。グガガグガガググガグ [CONTRIBUTING.md](CONTRIBUTING.md) グ、ガガガガガガグガガググガグググガ。
 <!-- i18n:end -->
 
 # ガグググガグググ
@@ -21,8 +21,8 @@
 ```bash
 git clone https://github.com/Shiro-Design-16/GUGUGAGA.git
 cd GUGUGAGA
-npm test          # グガグ 174 グ
-npm run test:all  # グガ 174 + ガガガ 104 + ググ 173 + ガガグガ 24
+npm test          # グガグ 176 グ
+npm run test:all  # グガ 176 + ガガガ 104 + ググ 173 + ガガグガ 24
 ```
 
 ガガガガガガガガガガガグガグガガガガガガガガググガ、グググガグガガガググガガガガガグガグ：

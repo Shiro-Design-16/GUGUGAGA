@@ -15,8 +15,8 @@
 ```bash
 git clone https://github.com/Shiro-Design-16/GUGUGAGA.git
 cd GUGUGAGA
-npm test          # 咕嘎咕 174 咕
-npm run test:all  # 咕嘎 174 + 嘎嘎嘎 104 + 咕咕 173 + 嘎嘎咕嘎 24
+npm test          # 咕嘎咕 176 咕
+npm run test:all  # 咕嘎 176 + 嘎嘎嘎 104 + 咕咕 173 + 嘎嘎咕嘎 24
 ```
 
 嘎嘎咕咕咕咕咕嘎咕嘎，嘎咕咕嘎咕：

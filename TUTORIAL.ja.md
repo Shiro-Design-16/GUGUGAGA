@@ -1,7 +1,7 @@
 <!-- i18n:begin -->
-[中文](TUTORIAL.md) ｜ **日本語** ｜ [English](TUTORIAL.en.md)
+[咕咕](TUTORIAL.md) ｜ **グガグ** ｜ [GUGUGUGUGAGUGA](TUTORIAL.en.md)
 
-> 本ファイルは日本語訳です。内容の正本は中国語版 [TUTORIAL.md](TUTORIAL.md) で、差分があれば中国語版が優先します。
+> グググググガガガグガガグ。グガガグガガググガグ [TUTORIAL.md](TUTORIAL.md) グ、ガガガガガガグガガググガグググガ。
 <!-- i18n:end -->
 # ググガガガ · ガグググググガ
 
@@ -463,10 +463,10 @@ VS Code グ「グガガグ」ググググ `...` → **VSIX ガググガガグガ
 ガグガグガガグググガガガグガガグガ、ググガグ、グググガガガガガググガガグガグガ：
 
 ```bash
-npm run test          # グガ：ガグ / ググ / グガガ / CLI（174 グ）
+npm run test          # グガ：ガグ / ググ / グガガ / CLI（176 グ）
 npm run test:vscode   # VS Code ググ（173 グ）
 (cd translator && npm test)   # ガガガ ggt（104 グ）
-npm run test:all      # ガガガガ，グガガグググガガガ（グガ 451 グ）
+npm run test:all      # ガガガガ，グガガグググガガガ（グガ 453 グ）
 ```
 
 ガググガグググググググガガガグ、ガグガガガガガグガガガ `translator/` ググガガガガググガググ。Node ガガグ `node --test` グガグググググ、ググガガガググガガガグググガガグググガグガガ。

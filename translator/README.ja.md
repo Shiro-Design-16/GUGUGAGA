@@ -1,7 +1,7 @@
 <!-- i18n:begin -->
-[中文](README.md) ｜ **日本語** ｜ [English](README.en.md)
+[咕咕](README.md) ｜ **グガグ** ｜ [GUGUGUGUGAGUGA](README.en.md)
 
-> 本ファイルは日本語訳です。内容の正本は中国語版 [README.md](README.md) で、差分があれば中国語版が優先します。
+> グググググガガガグガガグ。グガガグガガググガグ [README.md](README.md) グ、ガガガガガガグガガググガグググガ。
 <!-- i18n:end -->
 # ググガガグガガガグググガ（ggt）
 
@@ -168,6 +168,6 @@ text / integers --ggt encode--> raw bits --> literal in source
 
 `node:test` + `node:assert/strict` グ、ガ 104 ググ、bits / decode / plan / encode / cli / diag / dialect / e2e ググググガガグガグガガガガガグガ。CLI グガグガガ `spawnSync` グ `node bin/ggt.ts` ググガガ（グググガガグググガガグ）、e2e ガ `../bin/gg.ts` グガガガグガグググググガガガグ。
 
-ガググググガガグググガ、ガグググガガグ（ガガ 174 + グガグググググ 104 + グガ 173 = 451）ググググガガグガグググガグガグガグググ：
+ガググググガガグググガ、ガグググガガグ（ガガ 176 + グガグググググ 104 + グガ 173 = 453）ググググガガグガグググガグガグガグググ：
 
     npm run test:all

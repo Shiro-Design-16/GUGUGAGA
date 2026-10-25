@@ -458,10 +458,10 @@ code --install-extension vscode/gugugaga-language.vsix      # 咕咕咕咕嘎咕
 咕咕嘎嘎嘎咕咕嘎，咕嘎嘎嘎嘎，嘎嘎咕咕嘎嘎嘎咕咕：
 
 ```bash
-npm run test          # 咕嘎：嘎咕 / 咕咕 / 咕嘎嘎 / CLI（174 咕）
+npm run test          # 咕嘎：嘎咕 / 咕咕 / 咕嘎嘎 / CLI（176 咕）
 npm run test:vscode   # VS Code 咕咕（173 咕）
 (cd translator && npm test)   # 嘎嘎嘎 ggt（104 咕）
-npm run test:all      # 嘎嘎嘎嘎，咕嘎嘎咕咕咕嘎嘎嘎（咕嘎 451 咕）
+npm run test:all      # 嘎嘎嘎嘎，咕嘎嘎咕咕咕嘎嘎嘎（咕嘎 453 咕）
 ```
 
 咕咕咕嘎咕咕咕嘎咕嘎咕，嘎咕咕咕咕嘎嘎嘎 `translator/`。咕嘎嘎嘎 Node 嘎嘎嘎 `node --test`，嘎嘎咕咕咕咕咕咕咕咕嘎。

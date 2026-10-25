@@ -1,7 +1,7 @@
 <!-- i18n:begin -->
-[中文](README.md) | **English** | [日本語](README.ja.md)
+[咕咕](README.md) | **GUGUGUGUGAGUGA** | [グガグ](README.ja.md)
 
-> This is an English translation. The Chinese [README.md](README.md) is authoritative; if they diverge, the Chinese version wins.
+> GAGUGUGA GAGA GUGU GUGUGUGUGAGUGA GUGAGUGUGUGAGUGUGAGAGU. GUGUGA GUGAGAGUGUGAGU [README.md](README.md) GAGA GAGAGAGAGAGUGAGUGAGAGUGAGA; GAGA GAGUGAGA GUGAGUGAGUGAGA, GAGUGA GUGAGAGUGUGAGU GUGAGAGAGUGAGU GUGUGAGA.
 <!-- i18n:end -->
 
 # GUGA GUGUGUGU GAGAGUGUGAGAGU GAGAGU 咕咕嘎嘎
@@ -107,7 +107,7 @@ GUGUGA GUGUGAGUGAGUGUGUGU GAGUGU 11 GUGAGUGU GAGAGUGUGA GUGAGUGUGAGAGUGU GAGUGA 
 
 ```bash
 node --test "vscode/gugugaga/tests/*.test.js"    # 173 extension tests
-npm run test:all                                 # 174 language + 104 translator + 173 extension = 451
+npm run test:all                                 # 176 language + 104 translator + 173 extension = 453
 node scripts/check-translations.mjs              # 24 translated documents, structure and numbers
 ```
 

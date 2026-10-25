@@ -331,7 +331,7 @@ node --test "vscode/gugugaga/tests/*.test.js"      # extension tests
 npm run test:all                                    # everything, plus the translation checker
 ```
 
-咕咕 173 咕、咕嘎 174 咕、嘎嘎嘎 104 咕，咕嘎 451 咕。嘎嘎嘎嘎嘎 `node scripts/check-translations.mjs`，嘎嘎 24 咕嘎咕咕咕咕、嘎嘎嘎嘎嘎嘎嘎咕。
+咕咕 173 咕、咕嘎 176 咕、嘎嘎嘎 104 咕，咕嘎 453 咕。嘎嘎嘎嘎嘎 `node scripts/check-translations.mjs`，嘎嘎 24 咕嘎咕咕咕咕、嘎嘎嘎嘎嘎嘎嘎咕。
 
 咕咕咕嘎：嘎咕嘎嘎咕嘎、嘎嘎嘎、咕咕咕；咕咕咕咕咕咕 `require("vscode")`（嘎咕嘎咕 API 嘎咕嘎咕，VS Code 咕嘎嘎咕嘎嘎咕）；嘎咕咕咕咕嘎咕嘎咕咕；嘎咕嘎嘎嘎嘎嘎咕咕咕咕咕咕咕。
 

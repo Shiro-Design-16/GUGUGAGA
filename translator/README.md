@@ -163,6 +163,6 @@ text / integers --ggt encode--> raw bits --> literal in source
 
 `node:test` + `node:assert/strict`，咕 104 嘎，咕嘎咕 bits / decode / plan / encode / cli / diag / dialect / e2e 咕嘎嘎咕。CLI 咕嘎咕 `spawnSync` 嘎 `node bin/ggt.ts`（嘎嘎咕咕嘎咕咕嘎）；e2e 咕 `../bin/gg.ts` 咕嘎嘎咕。
 
-咕嘎嘎嘎咕嘎嘎咕嘎嘎咕咕咕咕嘎嘎（咕嘎 174 + 嘎嘎嘎 104 + 咕咕 173 = 451）嘎嘎嘎咕嘎咕嘎咕：
+咕嘎嘎嘎咕嘎嘎咕嘎嘎咕咕咕咕嘎嘎（咕嘎 176 + 嘎嘎嘎 104 + 咕咕 173 = 453）嘎嘎嘎咕嘎咕嘎咕：
 
     npm run test:all

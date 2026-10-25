@@ -1,7 +1,7 @@
 <!-- i18n:begin -->
-[中文](CONTRACT.md) ｜ **日本語** ｜ [English](CONTRACT.en.md)
+[咕咕](CONTRACT.md) ｜ **グガグ** ｜ [GUGUGUGUGAGUGA](CONTRACT.en.md)
 
-> 本ファイルは日本語訳です。内容の正本は中国語版 [CONTRACT.md](CONTRACT.md) で、差分があれば中国語版が優先します。
+> グググググガガガグガガグ。グガガグガガググガグ [CONTRACT.md](CONTRACT.md) グ、ガガガガガガグガガググガグググガ。
 <!-- i18n:end -->
 
 # 咕咕嘎嘎ガ VS Code グガ · ググガグ（v1）
@@ -337,7 +337,7 @@ node --test "vscode/gugugaga/tests/*.test.js"      # extension tests
 npm run test:all                                    # everything, plus the translation checker
 ```
 
-グガ 173 ガ、ガガ 174 ガ、グガグググググ 104 ガガ、ガガ 451 ガグガ。ググガググガガ `node scripts/check-translations.mjs` ガグガ、24 グガガガググガグガガガグガグググガググググガググ。
+グガ 173 ガ、ガガ 176 ガ、グガグググググ 104 ガガ、ガガ 453 ガグガ。ググガググガガ `node scripts/check-translations.mjs` ガグガ、24 グガガガググガグガガガグガグググガググググガググ。
 
 ガガグガガ：ガガガガグガガグググガググガグググガガガグガガガガガ。ググガグ `require("vscode")` グガガグガググ（ガグガガ API ガガガグガガガガガグガ。VS Code ガググググガガグガググガ）。ガガガググガガグガガグガガガガガググガグガガグガグガ。グガググガガグガグガガ、グガガガガググガガガググガグ。
 

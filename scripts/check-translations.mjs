@@ -24,7 +24,6 @@ const SOURCES = [
   "docs/名字对照表.md",
   "docs/翻译规范.md",
 ];
-const MARK = { ja: "**日本語**", en: "**English**" };
 const SUFFIX = { zh: ".咕咕", ja: ".ググ", en: ".gu" };
 
 const filter = (process.argv[2] || "").toLowerCase();
@@ -62,14 +61,67 @@ function readText(p) {
   return raw;
 }
 
-function stripHeader(doc, text, lang) {
-  const m = /^<!-- i18n:begin -->\n([\s\S]*?)<!-- i18n:end -->\n?/.exec(text);
-  if (!m) {
-    fail(doc, "缺少 <!-- i18n:begin --> ... <!-- i18n:end --> 头部块");
-    return text;
+const I18N_BEGIN = "<!-- i18n:begin -->";
+const I18N_END = "<!-- i18n:end -->";
+
+/**
+ * 头部块 = begin 标记行 + 内容行 + end 标记行。两行标记逐字节保留，块内容与正文一样是被替换过的位名，
+ * 所以语言只能由文件名后缀判定（产物里已经没有「**日本語**」这种语言标记了）。
+ */
+function splitHeader(doc, text, lang) {
+  if (!doc.endsWith("." + lang + ".md")) {
+    fail(doc, "文件名后缀与语言 " + lang + " 不一致——语言只由后缀判定");
+    return { block: null, body: text };
   }
-  if (!m[1].includes(MARK[lang])) fail(doc, "头部块里没有语言标记 " + MARK[lang]);
-  return text.slice(m[0].length);
+  const lines = text.split("\n");
+  if (lines[0] !== I18N_BEGIN) {
+    fail(doc, "第 1 行不是 " + I18N_BEGIN + " 头部块");
+    return { block: null, body: text };
+  }
+  const close = lines.indexOf(I18N_END, 1);
+  if (close < 0) {
+    fail(doc, "头部块缺少 " + I18N_END + "（没有闭合）");
+    return { block: null, body: text };
+  }
+  // 只认头部这一对标记行：文档正文（含围栏里的模板示例）还会提到这两串，不能用全文计数。
+  const inside = lines.slice(1, close).filter((l) => l === I18N_BEGIN || l === I18N_END).length;
+  if (inside !== 0) fail(doc, "头部块内混进了 " + inside + " 行标记，块边界不唯一");
+  return { block: lines.slice(1, close), body: lines.slice(close + 1).join("\n") };
+}
+
+const THETA = "\u03b8";
+
+/**
+ * 头部块一行的骨架：字形串（含 GU/GA）折成一个 θ、语言后缀归一成 .L.md、全角标点按 NFKC 归一，
+ * 最后把所有非字母数字串（空白、标点、残留散文）折成 θ。三语同为「等长替换式骨架保留」，
+ * 折完之后这份骨架必须完全相同——翻译版只有字形与语言，没有别的差异。
+ */
+function headerShape(line) {
+  return line
+    .replace(/[\u5495\u560E\u30B0\u30AC\u3050\u304C]+/g, THETA)
+    .replace(/(?:GU|GA)+/g, THETA)
+    .replace(/\.(?:ja|en)\.md/gi, ".L.md")
+    .normalize("NFKC")
+    .replace(/[^A-Za-z0-9]+/g, THETA)
+    .replace(new RegExp("^" + THETA + "|" + THETA + "$", "g"), "");
+}
+
+/** 两份译文的头部块必须同构：行数一致，逐行骨架一致。 */
+function compareHeaders(src, headers) {
+  const a = headers.ja;
+  const b = headers.en;
+  if (!a || !b) return;
+  const jaDoc = src.replace(/\.md$/, ".ja.md");
+  const enDoc = src.replace(/\.md$/, ".en.md");
+  if (a.length !== b.length) {
+    fail(enDoc, "i18n 头部块内容 " + b.length + " 行 ≠ " + jaDoc + " 的 " + a.length + " 行");
+    return;
+  }
+  for (let i = 0; i < a.length; i += 1) {
+    const x = headerShape(a[i]);
+    const y = headerShape(b[i]);
+    if (x !== y) fail(enDoc, "i18n 头部块第 " + (i + 2) + " 行骨架「" + y + "」≠ " + jaDoc + " 的「" + x + "」");
+  }
 }
 
 function headings(text) {
@@ -224,6 +276,7 @@ for (const src of SOURCES) {
     [...srcAsciiInline].filter((t) => /[/\\]/.test(t) || /\.(ts|js|json|md|vsix|plan)$/.test(t) || /^\.?咕咕$/.test(t)),
   );
 
+  const headers = {};
   for (const lang of ["ja", "en"]) {
     if (langFilter && langFilter !== lang) continue;
     const target = src.replace(/\.md$/, "." + lang + ".md");
@@ -232,7 +285,8 @@ for (const src of SOURCES) {
       continue;
     }
     checked += 1;
-    const body = stripHeader(target, readText(target), lang);
+    const { block, body } = splitHeader(target, readText(target), lang);
+    headers[lang] = block;
 
     const hs = headings(body);
     const sh = headings(srcText);
@@ -278,8 +332,8 @@ for (const src of SOURCES) {
     );
     const lost = [...srcCritical].filter((t) => !asciiInline.has(t));
     if (lost.length) fail(target, "路径/文件名丢了: " + lost.slice(0, 8).join(", "));
-
   }
+  compareHeaders(src, headers);
 }
 
 if (matched === 0) fail(process.argv[2] || "(全部)", "没有匹配到任何文档——检查过滤参数（路径前缀）与文件名");

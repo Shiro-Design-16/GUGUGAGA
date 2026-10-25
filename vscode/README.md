@@ -101,7 +101,7 @@ unzip -p vscode/gugugaga-language.vsix extension.vsixmanifest   # inspect the VS
 
 ```bash
 node --test "vscode/gugugaga/tests/*.test.js"    # 173 extension tests
-npm run test:all                                 # 174 language + 104 translator + 173 extension = 451
+npm run test:all                                 # 176 language + 104 translator + 173 extension = 453
 node scripts/check-translations.mjs              # 24 translated documents, structure and numbers
 ```
 
