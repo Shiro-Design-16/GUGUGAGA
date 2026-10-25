@@ -7,6 +7,9 @@ node_modules/
 # 构建产物：.vsix 由 vscode/build-vsix.sh 现做，走 GitHub Releases 分发
 *.vsix
 
+# 可读版文档备份：只留在本地，不随仓库分发
+backup/
+
 # 本地临时
 *.log
 .vscode-test/

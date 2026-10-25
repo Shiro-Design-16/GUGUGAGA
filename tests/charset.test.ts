@@ -15,6 +15,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { PROGRAM_SUFFIXES, hasProgramSuffix } from "../src/keywords.ts";
+import { decodeDocIfBitified, dialectOfDoc } from "../scripts/md-bits.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const EXAMPLES = path.join(ROOT, "examples");
@@ -106,7 +107,8 @@ function readExample(name: string): string {
 
 /** 取出某个标题之后的所有 FENCE + text 围栏正文。 */
 function specFencesAfter(heading: string): string[] {
-  const spec = fs.readFileSync(SPEC, "utf8");
+  // 文档可能已被 scripts/md-bits.mjs 位串化，先解回可读文本再找标题。
+  const spec = decodeDocIfBitified(fs.readFileSync(SPEC, "utf8"), dialectOfDoc("SPEC.md")).text;
   const start = spec.indexOf(heading);
   assert.ok(start >= 0, "SPEC.md 里找不到 " + heading);
   const blocks: string[] = [];

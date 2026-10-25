@@ -6,6 +6,7 @@ import { execFileSync } from "node:child_process";
 import { tmpdir } from "node:os";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { decodeDocIfBitified, dialectOfDoc } from "./md-bits.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const SOURCES = [
@@ -31,8 +32,13 @@ function fail(doc, msg) {
   problems.push(doc + ": " + msg);
 }
 
+const bitifiedDocs = new Set();
+// 文档可能已被 md-bits.mjs 位串化：先解回可读文本，后面的比对规则不变。
 function readText(p) {
-  return readFileSync(join(ROOT, p), "utf8").replace(/\r\n/g, "\n");
+  const raw = readFileSync(join(ROOT, p), "utf8").replace(/\r\n/g, "\n");
+  const { text, bitified } = decodeDocIfBitified(raw, dialectOfDoc(p));
+  if (bitified) bitifiedDocs.add(p);
+  return text;
 }
 
 function stripHeader(doc, text, lang) {
@@ -265,6 +271,7 @@ for (const src of SOURCES) {
 if (matched === 0) fail(process.argv[2] || "(全部)", "没有匹配到任何文档——检查过滤参数（路径前缀）与文件名");
 
 for (const n of notes) console.log("  · " + n);
+if (bitifiedDocs.size) console.log("  · 已位串化的文档按 ggt 位流解码后校验：" + bitifiedDocs.size + " 份");
 if (problems.length) {
   console.error("\n未通过 " + problems.length + " 项：");
   for (const p of problems) console.error("  ✗ " + p);
