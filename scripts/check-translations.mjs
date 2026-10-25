@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 校验 9 份中文文档的 ja/en 译文：结构、方言等价、输出逐字、数字与路径不漂移、可运行示例真跑。
+// 校验 12 份中文文档的 ja/en 译文：结构、方言等价、输出逐字、数字与路径不漂移、可运行示例真跑。
 // 用法：node scripts/check-translations.mjs [文档过滤子串] [语言 ja|en]
 import { readFileSync, existsSync, writeFileSync, mkdtempSync } from "node:fs";
 import { execFileSync } from "node:child_process";
@@ -11,6 +11,8 @@ import { decodeDocIfBitified, dialectOfDoc } from "./md-bits.mjs";
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const SOURCES = [
   "README.md",
+  "CHANGELOG.md",
+  "CONTRIBUTING.md",
   "TUTORIAL.md",
   "SPEC.md",
   "translator/README.md",
@@ -19,6 +21,7 @@ const SOURCES = [
   "vscode/CONTRACT.md",
   "vscode/gugugaga/README.md",
   "docs/名字对照表.md",
+  "docs/翻译规范.md",
 ];
 const MARK = { ja: "**日本語**", en: "**English**" };
 const SUFFIX = { zh: ".咕咕", ja: ".ググ", en: ".gu" };

@@ -167,6 +167,8 @@ export function decodeDocIfBitified(source, dialect) {
 
 export const DOC_FILES = [
   "README.md", "README.ja.md", "README.en.md",
+  "CHANGELOG.md", "CHANGELOG.ja.md", "CHANGELOG.en.md",
+  "CONTRIBUTING.md", "CONTRIBUTING.ja.md", "CONTRIBUTING.en.md",
   "SPEC.md", "SPEC.ja.md", "SPEC.en.md",
   "TUTORIAL.md", "TUTORIAL.ja.md", "TUTORIAL.en.md",
   "translator/README.md", "translator/README.ja.md", "translator/README.en.md",
@@ -175,7 +177,7 @@ export const DOC_FILES = [
   "vscode/CONTRACT.md", "vscode/CONTRACT.ja.md", "vscode/CONTRACT.en.md",
   "vscode/gugugaga/README.md", "vscode/gugugaga/README.ja.md", "vscode/gugugaga/README.en.md",
   "docs/名字对照表.md", "docs/名字对照表.ja.md", "docs/名字对照表.en.md",
-  "docs/翻译规范.md",
+  "docs/翻译规范.md", "docs/翻译规范.ja.md", "docs/翻译规范.en.md",
 ];
 
 if (import.meta.url === "file://" + process.argv[1]) {
