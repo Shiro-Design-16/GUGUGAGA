@@ -15,15 +15,15 @@
 ```bash
 git clone https://github.com/Shiro-Design-16/GUGUGAGA.git
 cd GUGUGAGA
-npm test          # 语言侧 167 条
-npm run test:all  # 语言 167 + 翻译器 104 + 扩展 173 + 译文检查 24
+npm test          # 咕嘎咕 174 咕
+npm run test:all  # 咕嘎 174 + 嘎嘎嘎 104 + 咕咕 173 + 嘎嘎咕嘎 24
 ```
 
 嘎嘎咕咕咕咕咕嘎咕嘎，嘎咕咕嘎咕：
 
 ```bash
-./install.sh                # 装 `咕咕嘎嘎` / `ググガガ` / `gggg` / `gg` / `ggt` 到 PATH
-./install.sh --uninstall    # 全部撤掉
+./install.sh                # 咕 `咕咕嘎嘎` / `ググガガ` / `gggg` / `gg` / `ggt` 咕 PATH
+./install.sh --uninstall    # 咕咕咕嘎
 ```
 
 ## 2. 嘎嘎嘎咕
@@ -54,15 +54,15 @@ npm run test:all  # 语言 167 + 翻译器 104 + 扩展 173 + 译文检查 24
 2. **咕咕嘎咕咕**：咕嘎、嘎咕、嘎嘎、嘎咕嘎、咕咕、咕嘎嘎嘎嘎；嘎嘎咕咕嘎嘎咕嘎嘎嘎咕嘎（咕咕 咕/嘎、咕嘎 グ/ガ + 嘎嘎嘎嘎、咕咕 GU/GA + 咕嘎咕咕），嘎嘎嘎嘎咕咕嘎咕咕。
 3. 咕嘎嘎嘎嘎咕嘎咕咕嘎咕嘎咕：嘎嘎 `scripts/check-translations.mjs` 咕 `SOURCES`、嘎嘎 `scripts/md-bits.mjs` 咕 `DOC_FILES`、咕嘎 i18n 嘎嘎嘎（咕嘎嘎 `docs/翻译规范.md`）。
 
-咕咕咕嘎 `.md` 嘎**咕嘎嘎**：咕嘎嘎咕嘎嘎嘎咕嘎嘎咕咕咕嘎（咕咕 咕/嘎、咕嘎 グ/ガ、咕咕 GU/GA），咕咕、咕咕、嘎嘎嘎咕、嘎咕嘎 Markdown 咕嘎咕嘎咕，嘎咕咕咕嘎咕、咕嘎、咕嘎嘎嘎嘎嘎咕嘎咕嘎。嘎嘎咕咕嘎咕咕 SHA-256，咕嘎咕咕嘎嘎嘎嘎嘎嘎咕咕嘎嘎，嘎咕咕咕嘎。嘎嘎嘎嘎嘎 `backup/readable/`，嘎咕嘎咕咕咕。
+咕咕咕嘎 `.md` 嘎**咕嘎嘎**：咕咕咕嘎咕嘎嘎嘎嘎咕嘎咕嘎咕嘎嘎（咕咕 咕/嘎、咕嘎 グ/ガ、咕咕 GU/GA），Markdown 嘎咕、咕咕、嘎咕、嘎咕咕嘎嘎嘎嘎嘎，嘎咕咕咕嘎咕、咕嘎、咕嘎、咕嘎嘎嘎嘎嘎咕嘎咕嘎。嘎嘎嘎嘎嘎嘎咕咕嘎咕咕嘎——嘎咕嘎咕嘎嘎嘎咕咕咕咕，咕嘎嘎、咕嘎嘎嘎嘎 ASCII 咕嘎咕嘎。咕咕咕咕咕嘎嘎嘎嘎 SHA-256，嘎嘎咕嘎嘎咕嘎咕咕咕咕咕咕咕，嘎咕咕咕嘎。咕嘎咕嘎咕嘎嘎咕：`咕`/`嘎`/`グ`/`ガ` 嘎咕嘎嘎嘎咕、咕嘎嘎 `咕咕嘎嘎` / `ググガガ` / `GUGUGAGA`（咕嘎咕咕嘎）、嘎嘎嘎嘎嘎咕嘎咕咕嘎咕咕。嘎嘎嘎嘎嘎 `backup/readable/`，嘎咕嘎咕咕咕。
 
 嘎咕嘎咕：嘎咕 `backup/readable/` 嘎嘎咕咕，嘎嘎嘎咕嘎嘎。
 
 ```bash
-# 改可读版，再重新生成产物（不带文件名 = 全部 36 份）
+# 咕咕嘎嘎，嘎嘎咕嘎咕咕咕（嘎咕嘎嘎咕 = 嘎嘎 36 嘎）
 $EDITOR backup/readable/README.md
 node scripts/md-bits.mjs README.md
-# 校验产物与可读副本是否一致（CI 里没有备份，会自动跳过）
+# 咕嘎嘎嘎咕嘎咕咕嘎嘎咕嘎嘎（CI 咕嘎咕咕嘎，咕嘎咕咕嘎）
 node scripts/md-bits.mjs --check
 ```
 

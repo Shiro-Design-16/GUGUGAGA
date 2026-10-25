@@ -13,7 +13,7 @@ import path from "node:path";
 import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
-import { DOC_FILES, dialectOfDoc, glyphRatio, readableOf, redactDoc, redactRun } from "../scripts/md-bits.mjs";
+import { DOC_FILES, dialectOfDoc, glyphRatio, readableOf, redactDoc, redactRun, residualProse } from "../scripts/md-bits.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const SCRIPT = path.join(ROOT, "scripts", "md-bits.mjs");
@@ -51,21 +51,28 @@ test("en：一个字母换成两个字符（行变两倍长）", () => {
   assert.match(out, /^(?:GU|GA){5} (?:GU|GA){5}$/);
 });
 
-test("代码围栏整块逐字节不变（含围栏行与语言标记）", () => {
+test("代码围栏：围栏行、info 串与代码原样，注释里的中文换成位名", () => {
   const block = ["```sh", "npm run build  # 构建", "node bin/gg.ts examples/咕嘎咕嘎.咕咕", "```"].join("\n");
   const source = "前一段散文。\n\n" + block + "\n\n后一段散文。\n";
   const out = redactDoc(source, "zh");
-  assert.ok(out.includes(block), "围栏块必须逐字节保留");
-  assert.notEqual(out.split("\n")[0], source.split("\n")[0], "围栏外的散文应被替换");
+  assert.ok(out.includes("```sh\n"), "围栏行与 info 串必须原样");
+  assert.ok(out.includes("npm run build  # "), "命令与注释记号原样");
+  assert.ok(!out.includes("构建"), "围栏里注释的中文必须被替换");
+  assert.ok(out.includes("node bin/gg.ts examples/咕嘎咕嘎.咕咕"), "源码行（含位名字形与真实路径）原样");
   assert.equal(out.split("\n").length, source.split("\n").length, "行数不变");
+  assert.equal((out.match(/[\u5495\u560E]/g) || []).length, ([...source].filter((ch) => /[\u3400-\u4DBF\u4E00-\u9FFF]/.test(ch)).length), "位名个数 = 原文散文字符数（围栏里的也算）");
 });
 
-test("行内代码逐字节不变（单反引号与双反引号）", () => {
-  const source = "看 `咕咕嘎嘎！` 与 `gg --help` 两处，还有 ``a`b`` 这种。\n";
+test("行内代码：位名字形与 ASCII 原样，中文换成位名（含尖括号占位符）", () => {
+  const source = "看 `咕咕嘎嘎！` 与 `gg --help` 两处，还有 ``a`b`` 这种，以及 `咕：<表达式>`。\n";
   const out = redactDoc(source, "zh");
   for (const span of ["`咕咕嘎嘎！`", "`gg --help`", "``a`b``"]) {
     assert.ok(out.includes(span), span + " 必须原样保留");
   }
+  assert.ok(out.includes("`咕：<"), "操作符与尖括号在行内代码里原样");
+  const inner = /<([\u5495\u560E]+)>/.exec(out);
+  assert.ok(inner, "<表达式> 里的中文必须换成位名");
+  assert.equal([...inner[1]].length, 3, "三个汉字 → 三个位名");
 });
 
 test("数字与 ASCII 术语原样保留（1.0.0 / 2026-10-25 / GGDIAG / UTF-8）", () => {
@@ -138,3 +145,80 @@ test("方言映射、清单与可读副本路径", () => {
   assert.equal(DOC_FILES.length, 36, "36 份受管文档");
   assert.ok(readableOf("README.md").endsWith(path.join("backup", "readable", "README.md")));
 });
+
+
+test("专有名词：咕咕嘎嘎 / ググガガ / GUGUGAGA（不分大小写、词边界）在任何方言里都原样保留", () => {
+  const names = ["咕咕嘎嘎", "ググガガ", "GUGUGAGA", "GuguGaga", "gUgUgAgA"];
+  for (const dialect of ["zh", "ja", "en"]) {
+    const out = redactDoc("名字 " + names.join(" 与 ") + " 都要留着。", dialect);
+    for (const name of names) assert.ok(out.includes(name), dialect + " 文档里的 " + name + " 必须原样");
+  }
+  assert.ok(!redactDoc("XGUGUGAGAY", "en").includes("GUGUGAGA"), "词中间不算专有名词");
+  assert.ok(redactDoc("examples/gugugaga.gu", "en").includes("gugugaga.gu"), "扩展名同样保留");
+});
+
+test("仓库里真实存在的路径原样保留（否则链接全断）", () => {
+  const out = redactDoc("见 docs/名字对照表.md 与 translator/CONTRACT.md 两处。", "zh");
+  assert.ok(out.includes("docs/名字对照表.md"), "CJK 路径必须原样");
+  assert.ok(out.includes("translator/CONTRACT.md"), "ASCII 路径必须原样");
+  assert.ok(!out.includes("两处") && !out.includes("见 "), "路径之外的散文仍然要换");
+  assert.ok(redactDoc("[表](docs/名字对照表.en.md)", "zh").includes("](docs/名字对照表.en.md)"), "链接目标里的路径不动");
+});
+
+test("行内代码里的 HTML 注释标记只是代码，不让后面整段逐字节跳过", () => {
+  const source = "头部有一段 ``<!-- i18n:begin -->` 块。\n\n这段散文仍然要换。\n";
+  const out = redactDoc(source, "zh");
+  assert.ok(out.includes("`<!-- i18n:begin -->`"), "行内代码原样");
+  assert.ok(!out.includes("这段散文仍然要换"), "标记后面的正文必须继续替换");
+  assert.ok(!/[\u3400-\u4DBF\u4E00-\u9FFF]/.test(out.replace(/[\u5495\u560E]/g, "")), "除位名外不留汉字");
+  const block = "<!-- i18n:begin -->\n**日本語**：[中文](README.md)\n<!-- i18n:end -->";
+  assert.ok(redactDoc(block, "ja").includes("**日本語**"), "行首的 i18n 头部块整块保留");
+});
+
+test("en 文档的围栏：英文代码原样，围栏里的中文换成 en 位名（一个汉字两个字符）", () => {
+  const source = ["```bash", "npm run build  # 构建一次", "echo ok", "```"].join("\n");
+  const out = redactDoc(source, "en");
+  assert.ok(out.includes("```bash"), "围栏行与 info 串原样");
+  assert.ok(out.includes("npm run build  # "), "英文命令与注释记号原样");
+  assert.ok(out.includes("echo ok"), "英文代码原样");
+  assert.ok(!out.includes("构建一次"), "围栏里的中文必须被替换");
+  const tail = out.split("# ")[1].split("\n")[0];
+  assert.match(tail, /^(?:GU|GA)+$/, "en 方言渲染位名");
+  assert.equal(tail.length, 8, "四个汉字 → 八个字符");
+});
+
+test("en 文档的散文：语言表里的中文/日文也换成 en 位名，竖线与空格结构不变", () => {
+  const source = "| 中文 | 日本語 | English |\n";
+  const out = redactDoc(source, "en");
+  const left = residualProse(out, "en");
+  assert.equal(left.prose, "", "en 产物散文区不该残留 CJK/假名");
+  assert.equal(left.code, "", "代码区也不该残留");
+  assert.ok(!out.includes("中文") && !out.includes("日本語"), "语言名本身必须消失");
+  assert.equal(out.split("\n")[0].split("|").length, 5, "列结构不变（4 根竖线）");
+  assert.match(out.trimEnd(), /^\| (?:GU|GA)+ \| (?:GU|GA)+ \| (?:GU|GA)+ \|$/, "三格都是位名，两侧空格与竖线原样");
+  assert.equal(out.length, source.length + 12, "12 个字符各展开成 2 个字符");
+});
+
+test("残留散文：产物为 0；可读原文的散文区与围栏里都还有（v2 要补的洞）", () => {
+  const readable = "# 标题\n\n一段散文，含 `咕：<表达式>` 与代码：\n\n```sh\n# 装一次\n```\n";
+  const before = residualProse(readable, "zh");
+  assert.ok([...before.prose].length > 0, "可读原文的散文区应有残留");
+  assert.ok([...before.code].length > 0, "可读原文的围栏里应有残留（v1 整块照抄的洞）");
+  const after = residualProse(redactDoc(readable, "zh"), "zh");
+  assert.equal(after.prose, "", "产物的散文区不该再剩散文");
+  assert.equal(after.code, "", "产物的代码区不该再剩 CJK/假名");
+});
+
+test("真仓库里的 36 份产物：残留散文一律为 0", () => {
+  let checked = 0;
+  for (const rel of DOC_FILES) {
+    const file = path.join(ROOT, rel);
+    if (!fs.existsSync(file)) continue;
+    const left = residualProse(fs.readFileSync(file, "utf8"), dialectOfDoc(rel));
+    assert.equal(left.prose, "", rel + " 散文区残留");
+    assert.equal(left.code, "", rel + " 代码区残留");
+    checked += 1;
+  }
+  assert.equal(checked, 36, "36 份产物都要扫到");
+});
+

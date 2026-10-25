@@ -6,7 +6,7 @@ import { execFileSync } from "node:child_process";
 import { tmpdir } from "node:os";
 import { join, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { dialectOfDoc, glyphRatio, readableOf, redactDoc } from "./md-bits.mjs";
+import { dialectOfDoc, foldGlyphs, glyphRatio, readableOf, redactDoc, residualProse } from "./md-bits.mjs";
 
 // 与 md-bits.mjs 共用同一个根：MD_BITS_ROOT 用于在 /tmp 夹具上跑（不碰真仓库）。
 const ROOT = process.env.MD_BITS_ROOT ? resolve(process.env.MD_BITS_ROOT) : join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -45,6 +45,11 @@ function readText(p) {
   const dialect = dialectOfDoc(p);
   const ratio = glyphRatio(raw, dialect);
   if (ratio < 0.5) fail(p, "散文区没有替换（位名占比 " + ratio.toFixed(2) + " < 0.5）");
+  // 直接扫产物（不依赖 backup/，CI 里也能跑）：散文区不该再剩散文，代码区不该再剩 CJK/假名。
+  const left = residualProse(raw, dialect);
+  const peek = (s) => [...s].slice(0, 8).join("");
+  if (left.prose) fail(p, "散文区残留 " + [...left.prose].length + " 个散文字符（如「" + peek(left.prose) + "」）");
+  if (left.code) fail(p, "代码区残留 " + [...left.code].length + " 个 CJK/假名字符（如「" + peek(left.code) + "」）");
   const readable = readableOf(p);
   if (!existsSync(readable)) {
     recomputeSkipped += 1;
@@ -245,8 +250,10 @@ for (const src of SOURCES) {
         if (isProgram(s)) {
           if (!isProgram(tf[i].body)) fail(target, "第 " + (i + 1) + " 个代码块本应是咕嘎语源码（方言已改写）");
           else if (tidy(s) !== tidy(tf[i].body)) fail(target, "第 " + (i + 1) + " 个源码块与原文方言不等价（源码块第 " + srcFences[i].open + " 行起）");
-        } else if (s !== tf[i].body) {
-          fail(target, "第 " + (i + 1) + " 个块是输出/命令/图表，必须逐字一致（源码块第 " + srcFences[i].open + " 行起）");
+        } else if (s.split("\n").length !== tf[i].body.split("\n").length) {
+          fail(target, "第 " + (i + 1) + " 个块的行数 " + tf[i].body.split("\n").length + " ≠ 原文 " + s.split("\n").length + "（源码块第 " + srcFences[i].open + " 行起）");
+        } else if (foldGlyphs(s) !== foldGlyphs(tf[i].body)) {
+          fail(target, "第 " + (i + 1) + " 个块是输出/命令/图表，骨架（位名折成 θ 后）必须逐字一致（源码块第 " + srcFences[i].open + " 行起）");
         }
       }
       const rs = srcFences.filter((f) => isProgram(f.body) && isEntryProgram(f.body));
