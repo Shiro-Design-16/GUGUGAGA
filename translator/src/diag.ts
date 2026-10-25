@@ -1,13 +1,14 @@
 /**
  * 咕嘎翻译器 · GGDIAG v1 诊断帧解码（SPEC.md §12）。
  *
- * 输入是宿主 stderr 的原文：只取 咕(0) / 嘎(1)，其余字符（帧间空格、换行、
- * 宿主警告正文）一律忽略。帧布局（MSB 在前）：
+ * 输入是宿主 stderr 的原文：位名按 SPEC §1.2 归一化（0 = 咕 / グ / ぐ / GU，
+ * 1 = 嘎 / ガ / が / GA，英文两位大小写不分），其余字符（帧间空格、换行、
+ * 宿主警告正文）一律丢弃。帧布局（MSB 在前）：
  *   magic 4 = 1010 | version 2 = 00 | code 8 | line 16 | col 16 | mlen 16
  *   | msg mlen*8（UTF-8 字节）| end 3 = 110
  */
 
-import { GA, GU } from "./bits.ts";
+import { GA, GU, normalizeBitsLoose } from "./bits.ts";
 
 export interface DiagEvent {
   code: number;
@@ -64,15 +65,6 @@ const MAGIC_BITS = 4;
 const HEADER_BITS = 62;
 const END_BITS = 3;
 
-/** 丢掉一切非 咕 / 嘎 的字符：宿主警告不该毁掉整条流。 */
-function pickBits(input: string): string {
-  let out = "";
-  for (const ch of input) {
-    if (ch === GU || ch === GA) out += ch;
-  }
-  return out;
-}
-
 /** 从 start 起按 MSB 在前读 width 位无符号整数。 */
 function readUnsigned(bits: string, start: number, width: number): number {
   let value = 0;
@@ -96,7 +88,7 @@ function readMessage(bits: string, start: number, length: number): string {
  * 剩余位不够读完整帧（头或消息）时不再可能有完整帧，停止。
  */
 export function parseDiagFrames(input: string): DiagEvent[] {
-  const bits = pickBits(input);
+  const bits = normalizeBitsLoose(input);
   const events: DiagEvent[] = [];
   let i = 0;
 

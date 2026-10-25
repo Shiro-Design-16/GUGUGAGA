@@ -349,6 +349,8 @@ test("isPureLine 接受面板里的咕嘎正文与 reason 标签", async functio
       "嘎嘎",
       "咕咕嘎嘎！ 咕咕！？ 咕咕嘎",
       ACTIVATION_LINE,
+      // 三方言之后 gu/ga 两字母就是一位：这类纯位串算正文
+      "gugugaga",
     ];
     for (const text of accepted) {
       assert.strictEqual(extension.isPureLine(text), true, "应判为纯咕嘎：" + JSON.stringify(text));
@@ -366,7 +368,7 @@ test("isPureLine 拒绝中文原因、路径、码名、空串、换行与制表
       "咕咕\t嘎嘎",
       "咕咕\r嘎嘎",
       "",
-      "gugugaga",
+      // "gugugaga" 原先在这里；三方言放宽后它是合法的纯位串，已移到接受组
       "ENOENT no such file or directory",
       "非法字符“噶”（U+5676）",
     ];
@@ -376,6 +378,29 @@ test("isPureLine 拒绝中文原因、路径、码名、空串、换行与制表
     assert.strictEqual(extension.isPureLine(undefined), false);
     assert.strictEqual(extension.isPureLine(null), false);
     assert.strictEqual(extension.isPureLine(0), false);
+  });
+});
+
+test("isPureLine 容纳三方言位名（グ/ガ、GU/GA 大小写），仍拒绝中文散文", async function () {
+  await withExtension(function (extension) {
+    const accepted = ["グ", "ガ", "グガグ", "ぐが", "GUGA", "guga", "GuGa", "グ咕GU！？：", "GUGU!?:", "　"];
+    for (const text of accepted) {
+      assert.strictEqual(extension.isPureLine(text), true, "应判为纯位名：" + JSON.stringify(text));
+    }
+    // 落单的 G/U/A 与任何散文都进不去：英文位名必须成对
+    const rejected = [
+      "G",
+      "U",
+      "A",
+      "GUEST",
+      "咕咕 嘎嘎（注释）",
+      "ググ ガガ 説明",
+      "用法错误",
+      "读文件失败 /tmp/x.咕咕",
+    ];
+    for (const text of rejected) {
+      assert.strictEqual(extension.isPureLine(text), false, "应判为不纯：" + JSON.stringify(text));
+    }
   });
 });
 

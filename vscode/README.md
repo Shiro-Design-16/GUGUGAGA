@@ -25,7 +25,7 @@ code --install-extension vscode/gugugaga-language.vsix      # 在仓库根执行
 | 着色 | 30 个保留记号 + 两种字面量（位串整段着色）+ 类名/方法名/变量名 + `！？`/`：` 标点，35 条扁平规则；每条规则同时吃 咕/グ/ぐ/GU、嘎/ガ/が/GA 与全角/半角 `！？：`/`!?:`，`GU`/`GA` 是两个字母一个记号 | `gugugaga/syntaxes/gugugaga.tmLanguage.json` |
 | 补全 | 按上下文给保留词、骨架片段与本文档已定义的名字；`！？` 之后只给方法名 | `gugugaga/src/completion.js` |
 | 悬停 | 记号释义、家族归属与用法示例（文案同样是咕/嘎写的） | `gugugaga/src/hover.js` |
-| 诊断 | 打开/保存/编辑（防抖 350ms）时真跑 `咕咕嘎嘎 嘎嘎`，解码 stderr 的 GGDIAG 帧，把 `E1xx`~`E3xx` 变成波浪线与 Problems 条目 | `gugugaga/src/cli.js` + `src/diagnostics.js` |
+| 诊断 | 打开/保存/编辑（防抖 350ms）时真跑 `咕咕嘎嘎 嘎嘎`，解码 stderr 的 GGDIAG 帧（位名字形跟源文件后缀：`咕`/`嘎`、`グ`/`ガ`、`GU`/`GA`，解码器三套都吃），把 `E1xx`~`E3xx` 变成波浪线与 Problems 条目 | `gugugaga/src/cli.js` + `src/diagnostics.js` |
 | 运行 | 编辑器标题栏右上角的 ▶ 与右键菜单「咕咕嘎嘎！ 咕咕嘎嘎」——把 `咕咕嘎嘎 <文件>` 发进集成终端（复用同一个名为 `咕咕嘎嘎` 的终端），脏文档先存盘；标题栏图标用 codicon `$(play)`，颜色随深浅主题 | `gugugaga/src/run.js` |
 
 运行按钮**不捕获输出**：程序只吐位流，终端才是能喂 stdin、能自己接 `| ggt decode --bytes`、还能看退出码的地方。命令行走**隐式执行**（只有文件路径，不带动作词 `嘎嘎`），拼装时会按 POSIX/win32 规则给参数加引号，路径里有空格也不会散。键盘上不绑快捷键：命令面板里一条带 ASCII 和弦的入口会破坏纯净度。
@@ -44,7 +44,7 @@ code --install-extension vscode/gugugaga-language.vsix      # 在仓库根执行
 
 ## 外壳纯净度：哪些字是咕嘎，哪些必须 ASCII
 
-**咕嘎写成的**（用户能看见的一切）：`displayName`、命令标题、输出面板标题与内容、Problems 面板的来源列（诊断集合名 `咕咕嘎嘎`）、5 个设置的分组标题、片段 `description`、补全候选的 `detail`/`documentation`、悬停文案、`cliPath` 的默认值（`咕咕嘎嘎`）。面板写入前还有运行时闸 `isPureLine()`：只认 咕/嘎/！/？/：/空格，其它一律不写面板、只进开发者控制台；`tests/purity.test.js` 用变异测试证明这道闸会拒。
+**咕嘎写成的**（用户能看见的一切）：`displayName`、命令标题、输出面板标题与内容、Problems 面板的来源列（诊断集合名 `咕咕嘎嘎`）、5 个设置的分组标题、片段 `description`、补全候选的 `detail`/`documentation`、悬停文案、`cliPath` 的默认值（`咕咕嘎嘎`）。面板写入前还有运行时闸 `isPureLine()`：只认三种方言的位名（`咕`/`嘎`、`グ`/`ガ`、成对的 `GU`/`GA`）与 `！？：!?:`、空格与 U+3000，其它一律不写面板、只进开发者控制台；`tests/purity.test.js` 用变异测试证明这道闸会拒。
 
 **必须保持 ASCII 的**：扩展 `name`/`publisher`、`engines.vscode`、`main`、`activationEvents`、`languages[0].id`、`grammars[0].scopeName`、命令 id、设置 id 与 `type`/`scope`。这些不是文案而是 **VS Code schema 的匹配键** —— 扩展标识、激活点、TextMate `source.gugugaga` 注入、命令面板 API 都按这些字符串匹配，改一个字符扩展就不加载。同理，`nodePath` 的默认值只能是 `node`。
 
@@ -83,8 +83,8 @@ unzip -p vscode/gugugaga-language.vsix extension.vsixmanifest   # 看 VSIX 清�
 ## 测试
 
 ```bash
-node --test "vscode/gugugaga/tests/*.test.js"   # 167 条，11 个文件
-npm run test:all                                # 134 + 100 + 167 = 401 条
+node --test "vscode/gugugaga/tests/*.test.js"   # 173 条，11 个文件
+npm run test:all                                # 142 + 104 + 173 = 419 条
 ```
 
 4 条端到端用例会真 spawn `node bin/gg.ts 嘎嘎` 拿真帧解码，不是假绿；9 条纯净度用例给输出面板的运行时闸做行为与变异测试；全部离线、零依赖、**不** `require("vscode")`（宿主 mock 由 `Module._load` 拦截）。
@@ -94,15 +94,15 @@ npm run test:all                                # 134 + 100 + 167 = 401 条
 | 文件 | 行数 | 职责 |
 | --- | --- | --- |
 | `gugugaga/package.json` | 118 | 清单：语言、语法、片段、3 个命令、菜单、图标、5 个设置 |
-| `gugugaga/src/extension.js` | 379 | 激活入口、防抖、命令注册、输出面板（含 `isPureLine` 面板闸） |
+| `gugugaga/src/extension.js` | 408 | 激活入口、防抖、命令注册、输出面板（含 `isPureLine` 面板闸） |
 | `gugugaga/src/cli.js` | 214 | CLI 调用桥：三级回退、PATH 探测、`execFile` 包装 |
-| `gugugaga/src/diagnostics.js` | 245 | GGDIAG 帧解码 → 编辑器诊断 |
+| `gugugaga/src/diagnostics.js` | 280 | GGDIAG 帧解码 → 编辑器诊断 |
 | `gugugaga/src/completion.js` | 303 | 上下文扫描与候选生成 |
 | `gugugaga/src/hover.js` | 167 | 记号定位与释义 |
 | `gugugaga/src/keywords.js` | 316 | 保留词表（30 条，唯一 JS 真源） |
 | `gugugaga/src/run.js` | 151 | 运行按钮：解析命令行、引号、复用终端 |
 | `gugugaga/syntaxes/gugugaga.tmLanguage.json` | 336 | 35 条扁平 match 规则 |
-| `gugugaga/tests/*.test.js` | 11 个 / 167 条 | 含 4 条真 CLI e2e（其中 1 条回灌 `ggt decode --diag`）与 9 条纯净度闸测试 |
+| `gugugaga/tests/*.test.js` | 11 个 / 173 条 | 含 4 条真 CLI e2e（其中 1 条回灌 `ggt decode --diag`）与 9 条纯净度闸测试 |
 
 ## 已知限制
 

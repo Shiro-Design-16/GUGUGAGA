@@ -210,6 +210,44 @@ export function hasProgramSuffix(name: string): boolean {
   return PROGRAM_SUFFIXES.some((suffix) => lower.endsWith(suffix));
 }
 
+/** 输出与诊断使用的方言（SPEC §1.4）：由文件后缀决定 */
+export type Dialect = "zh" | "ja" | "en";
+
+/** 位 0 / 位 1 在各方言里的字形：中文 咕/嘎，日语 グ/ガ，英语 GU/GA（全大写） */
+const DIALECT_GLYPHS: Readonly<Record<Dialect, readonly string[]>> = {
+  zh: [GU, GA],
+  ja: ["グ", "ガ"],
+  en: ["GU", "GA"],
+};
+
+/**
+ * 文件后缀 → 输出方言（SPEC §1.4）：
+ * .咕咕 → zh；.ググ → ja；.gu / .gugugaga（大小写不敏感）→ en；
+ * 无后缀、其它后缀、空串 → zh。
+ */
+export function dialectOfFile(fileName: string): Dialect {
+  if (fileName.endsWith(".咕咕")) return "zh";
+  if (fileName.endsWith(".ググ")) return "ja";
+  const lower = fileName.toLowerCase();
+  if (lower.endsWith(".gugugaga") || lower.endsWith(".gu")) return "en";
+  return "zh";
+}
+
+/**
+ * 规范位串（咕/嘎）→ 指定方言的字形。
+ * 位串以外没有别的字符；万一有，原样保留（于是只有英式两字母会让长度翻倍）。
+ */
+export function renderBits(bits: string, dialect: Dialect): string {
+  if (dialect === "zh") return bits;
+  const [zero, one] = DIALECT_GLYPHS[dialect];
+  let out = "";
+  for (const ch of bits) {
+    const bit = bitOf(ch);
+    out += bit === "0" ? zero : bit === "1" ? one : ch;
+  }
+  return out;
+}
+
 /** 位串 → BigInt（左起为高位） */
 export function bitsToInt(bits: string): bigint {
   let v = 0n;

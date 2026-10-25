@@ -11,7 +11,8 @@
 import { existsSync, readFileSync } from "node:fs";
 
 import { EXIT, GgError, frameOfError } from "./errors.ts";
-import { hasProgramSuffix } from "./keywords.ts";
+import type { Dialect } from "./keywords.ts";
+import { dialectOfFile, hasProgramSuffix, renderBits } from "./keywords.ts";
 import { interpret } from "./interp.ts";
 import { parseSource } from "./parser.ts";
 import { encodeDiag, EVENT } from "./wire.ts";
@@ -66,9 +67,17 @@ function parseArgs(argv: string[], allowMaxSteps: boolean, presetMaxSteps?: numb
   return { ok: true, file, maxSteps };
 }
 
-/** 写一帧到 stderr；帧后一个换行（SPEC 允许帧间夹空格/换行）。stdout 一个字节都不加。 */
-function emit(code: number, pos: { line: number; col: number } | null, message: string): void {
-  process.stderr.write(encodeDiag(code, pos, message) + "\n");
+/**
+ * 写一帧到 stderr；帧后一个换行（SPEC 允许帧间夹空格/换行）。stdout 一个字节都不加。
+ * dialect 只决定 0/1 的字形：帮助与用法错误没有具体程序，固定用 咕/嘎（SPEC §1.4）。
+ */
+function emit(
+  code: number,
+  pos: { line: number; col: number } | null,
+  message: string,
+  dialect: Dialect = "zh",
+): void {
+  process.stderr.write(encodeDiag(code, pos, message, dialect) + "\n");
 }
 
 function usageError(message: string): number {
@@ -82,13 +91,13 @@ function exitOfCode(code: string): number {
   return EXIT.RUNTIME;
 }
 
-function reportError(err: unknown): number {
+function reportError(err: unknown, dialect: Dialect = "zh"): number {
   if (err instanceof GgError) {
-    process.stderr.write(frameOfError(err) + "\n");
+    process.stderr.write(frameOfError(err, dialect) + "\n");
     return exitOfCode(err.code);
   }
   // 宿主自己的 bug 也编码成帧：正文只取 message，**绝不**写 stack（SPEC.md §8.1）。
-  emit(EVENT.INTERNAL, null, err instanceof Error ? err.message : String(err));
+  emit(EVENT.INTERNAL, null, err instanceof Error ? err.message : String(err), dialect);
   return EXIT.RUNTIME;
 }
 
@@ -131,12 +140,12 @@ function looksLikeProgram(argv: string[]): boolean {
 }
 
 /** 读源码；按 SPEC.md §1 把 CRLF 归一化为 LF。失败时写 code 23 帧并返回 null。 */
-function readSource(fileName: string): string | null {
+function readSource(fileName: string, dialect: Dialect): string | null {
   try {
     return readFileSync(fileName, "utf8").replace(/\r\n/g, "\n");
   } catch (err) {
     const reason = err instanceof Error ? err.message : String(err);
-    emit(EVENT.READ_FAILED, null, `无法读取文件 ${fileName}：${reason}`);
+    emit(EVENT.READ_FAILED, null, `无法读取文件 ${fileName}：${reason}`, dialect);
     return null;
   }
 }
@@ -154,7 +163,9 @@ function readStdin(): string {
 function runCommand(argv: string[], presetMaxSteps?: number): number {
   const parsed = parseArgs(argv, true, presetMaxSteps);
   if (!parsed.ok) return usageError(parsed.error);
-  const raw = readSource(parsed.file);
+  // 方言只看文件名后缀；解释器始终交 咕/嘎，出口处才换字形（SPEC §1.4）。
+  const dialect = dialectOfFile(parsed.file);
+  const raw = readSource(parsed.file, dialect);
   if (raw === null) return EXIT.USAGE;
   const source = stripShebang(raw);
   try {
@@ -163,26 +174,27 @@ function runCommand(argv: string[], presetMaxSteps?: number): number {
       maxSteps: parsed.maxSteps,
       stdin: readStdin(),
       write: (bits: string): void => {
-        process.stdout.write(bits);
+        process.stdout.write(renderBits(bits, dialect));
       },
     });
     return EXIT.OK;
   } catch (err) {
-    return reportError(err);
+    return reportError(err, dialect);
   }
 }
 
 function checkCommand(argv: string[]): number {
   const parsed = parseArgs(argv, false);
   if (!parsed.ok) return usageError(parsed.error);
-  const raw = readSource(parsed.file);
+  const dialect = dialectOfFile(parsed.file);
+  const raw = readSource(parsed.file, dialect);
   if (raw === null) return EXIT.USAGE;
   const source = stripShebang(raw);
   try {
     parseSource(source);
     return EXIT.OK;
   } catch (err) {
-    return reportError(err);
+    return reportError(err, dialect);
   }
 }
 

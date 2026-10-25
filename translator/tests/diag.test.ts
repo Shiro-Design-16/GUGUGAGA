@@ -173,3 +173,82 @@ test("真解释器的诊断帧（解释器尚未输出帧时跳过）", (t) => {
   assert.equal(decoded.status, 0);
   assert.ok(decoded.stdout.includes("读文件失败"), "实际输出：" + decoded.stdout);
 });
+
+/** 把中文位流逐位置换成指定方言（测试里的独立换算，不经过实现）。 */
+function toDialect(bits: string, dialect: "ja" | "en"): string {
+  const [zero, one] = dialect === "ja" ? ["グ", "ガ"] : ["GU", "GA"];
+  let out = "";
+  for (const ch of bits) out += ch === "咕" ? zero : one;
+  return out;
+}
+
+/** 逐字母翻转大小写，验证 GU / GA 不区分大小写。 */
+function flipCase(text: string): string {
+  let out = "";
+  let i = 0;
+  for (const ch of text) {
+    out += i % 2 === 0 ? ch.toUpperCase() : ch.toLowerCase();
+    i += 1;
+  }
+  return out;
+}
+
+/** 同一条位流里逐位换方言：三种字形轮着用（SPEC §1.2 逐位置等价）。 */
+function mixPerPosition(bits: string): string {
+  let out = "";
+  let i = 0;
+  for (const ch of bits) {
+    const bit = ch === "咕" ? 0 : 1;
+    if (i % 3 === 0) out += bit === 0 ? "咕" : "嘎";
+    else if (i % 3 === 1) out += bit === 0 ? "グ" : "ガ";
+    else out += bit === 0 ? "GU" : "GA";
+    i += 1;
+  }
+  return out;
+}
+
+test("日语帧：グ / ガ 位名解出同样的帧", () => {
+  const frame = toDialect(frameBits({ code: 3, line: 9, col: 2, message: "未定义的字段 甲" }), "ja");
+  assert.deepEqual(parseDiagFrames(frame), [{ code: 3, line: 9, col: 2, message: "未定义的字段 甲" }]);
+  const cli = runGgt(["decode", "--diag"], frame + "\n");
+  assert.equal(cli.status, 0, cli.stderr);
+  assert.equal(cli.stdout, "9:2 E1003 未定义的字段 甲\n");
+});
+
+test("英语帧：GU / GA 是两位一个位，大小写混写也解得出", () => {
+  const bits = frameBits({ code: 23, message: "读文件失败：x.gu" });
+  const upper = toDialect(bits, "en");
+  assert.equal(upper.length, bits.length * 2);
+  for (const input of [upper, flipCase(upper), upper.toLowerCase()]) {
+    const events = parseDiagFrames(input);
+    assert.equal(events.length, 1, "输入片段：" + input.slice(0, 24));
+    assert.equal(events[0].code, 23);
+    assert.equal(events[0].message, "读文件失败：x.gu");
+    assert.equal(formatDiagEvent(events[0]), "读文件失败 读文件失败：x.gu");
+  }
+});
+
+test("三方言混排：帧内逐位换方言、帧间夹空白与落单字母都解得开", () => {
+  const mixed = parseDiagFrames(mixPerPosition(frameBits({ code: 6, line: 4, col: 1, message: "混排" })));
+  assert.deepEqual(mixed, [{ code: 6, line: 4, col: 1, message: "混排" }]);
+  assert.equal(formatDiagEvent(mixed[0]), "4:1 E3001 混排");
+
+  const input =
+    frameBits({ code: 0, message: "中文帧" })
+    + "\n"
+    + toDialect(frameBits({ code: 22, message: "日语帧" }), "ja")
+    + " \u3000 "
+    + "g"
+    + toDialect(frameBits({ code: 24, line: 2, col: 7, message: "英语帧" }), "en");
+  const cli = runGgt(["decode", "--diag"], input);
+  assert.equal(cli.status, 0, cli.stderr);
+  assert.equal(cli.stdout, "用法错误 中文帧\n帮助 日语帧\n2:7 内部错误 英语帧\n");
+});
+
+test("整段乱码：没有找到诊断帧，退出码 1，stdout 为空", () => {
+  const garbage = "警告：宿主：无法识别的字节\nこんにちは、世界\nGAGA gaga g\n咕嘎嘎\n";
+  const result = runGgt(["decode", "--diag"], garbage);
+  assert.equal(result.status, 1);
+  assert.equal(result.stdout, "");
+  assert.match(result.stderr, /没有找到诊断帧/);
+});

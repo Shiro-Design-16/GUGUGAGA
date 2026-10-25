@@ -10,7 +10,7 @@
 > A pure OOP language written with nothing but `咕` `嘎` `！` `？` `：` space, newline and indentation.
 > The source has no letters, no digits, no strings, no comments — every name is a bit string of `咕`/`嘎`, and every output is a bit stream.
 
-**Status**: v1 works end to end. 401 tests green (language 134 + translator 100 + extension 167), 7 example programs runnable, zero runtime dependencies (Node 24 type stripping runs `.ts` directly).
+**Status**: v1 works end to end. 419 tests green (language 142 + translator 104 + extension 173), 7 example programs runnable, zero runtime dependencies (Node 24 type stripping runs `.ts` directly).
 
 ---
 
@@ -180,7 +180,7 @@ The skeleton you gave (`咕咕！ 咕嘎：` to define a class, `咕咕！？ �
 
 ## 4. Output encoding conventions (the translator interface)
 
-stdout is a **continuous bare bit stream**: only `咕` (0) and `嘎` (1), **no separators, no newlines, no trailing newline**.
+stdout is a **continuous bare bit stream**: only bit names 0 and 1, **no separators, no newlines, no trailing newline**. Which glyphs those bit names are drawn with follows the source file's suffix (see §10 and `SPEC.md` §8.1): `.咕咕` → `咕`/`嘎`, `.ググ` → `グ`/`ガ`, `.gu`/`.gugugaga` → `GU`/`GA`.
 
 | Value type | Output width | Notes |
 | --- | --- | --- |
@@ -283,7 +283,7 @@ That is why names in the examples run long — short names are mostly eaten by k
 | `docs/名字对照表.md` | 164 | line-by-line translation of the examples + Java correspondence |
 | `examples/` | 7 | five in Chinese: 咕嘎咕嘎 (bit strings and calls) / 嘎咕嘎咕 (branching) / 咕咕嘎嘎 (loop + objects) / 嘎嘎咕咕 (inheritance dispatch) / 咕嘎嘎咕 (input and arithmetic); plus `ガググガグ.ググ` (Japanese) and `gugugaga.gu` (English, mixed case) |
 | `demos/咕咕咕嘎.咕咕` | 1 | an executable script sample whose first line is `#!` (not in `examples/`; the character-set assertion only scans `examples/`) |
-| `tests/*.test.ts` | 7 files / 134 cases | lexer 21, parser 19, interp 35, e2e 8, charset 11, cli 16, wire 19; `tests/ggdiag.ts` is a test-side independent frame decoder (not a test file) |
+| `tests/*.test.ts` | 7 files / 142 cases | the 8 output-dialect assertions of `tests/dialect.test.ts`; `tests/ggdiag.ts` is a test-side independent frame decoder (not a test file) |
 
 ---
 
@@ -305,6 +305,8 @@ The action words are themselves characters of this language: `嘎` = run, `嘎�
 The command name is `咕咕嘎嘎` (the same entry as Japanese `ググガガ`, `gggg`, `gg`); when it is not installed, the equivalent is `node bin/gg.ts ...`. All four suffixes are recognized, and the dialect is independent of the suffix — a `GU` written inside a `.咕咕` file runs just the same. If a file's first line starts with `#!`, it is skipped before running/checking (replaced by an empty line, line numbers unchanged), so a `.咕咕` file can be run directly as `./程序.咕咕`; a `#` on any other line is still E1001.
 
 Step-budget bit strings: only `咕`/`嘎`, `咕`=0, `嘎`=1, high bit first — `嘎` is 1, `嘎咕咕咕` is 8, `嘎嘎嘎嘎嘎` is 31. An empty string, any other character, or a value of 0 counts as a usage error.
+
+**Output glyphs follow the source file's suffix**: the program bit stream and diagnostic frames use the same bit names, so a given program's stdout and stderr are always in the same dialect; help and command-line usage errors have no specific program and always use the Chinese `咕`/`嘎`.
 
 **All diagnostics (including help and usage errors) go to stderr**; stdout carries only the program's bit stream. So `咕咕嘎嘎 嘎嘎嘎 | less` is empty; to read the help you need `咕咕嘎嘎 嘎嘎嘎 2>&1 | ggt decode --diag`.
 
@@ -346,13 +348,13 @@ The error code and the position both live in a **GGDIAG v1 frame** (`SPEC.md` §
 # 2:7 E1001 非法字符“噶”（U+5676）
 ```
 
-The help frame (`咕咕嘎嘎 嘎嘎嘎`) works the same way. **The shell does not follow dialects**: frame headers, codes and bit streams always use Chinese bit names (`咕`/`嘎`), even when the source is written entirely in `GU`/`GA` — a decoder only needs one alphabet. The human-readable text still lives in `src/`, but it is only **bytes being carried** — the frame holds the original UTF-8, so the translator needs to know none of the texts and never has to be resynced with the interpreter's wording. The first segment printed by `ggt decode --diag` is `行:列`; events without a position (unreadable file, usage error) have only the code name and description.
+The help frame (`咕咕嘎嘎 嘎嘎嘎`) works the same way. **Bit-name glyphs follow the source file's suffix**: a `.咕咕` frame uses `咕`/`嘎`, `.ググ` uses `グ`/`ガ`, `.gu` uses `GU`/`GA`; help and usage errors are always Chinese. Normalized, the three dialects' frames are bit-for-bit identical, and `ggt decode --diag` accepts all three. The human-readable text still lives in `src/`, but it is only **bytes being carried** — the frame holds the original UTF-8, so the translator needs to know none of the texts and never has to be resynced with the interpreter's wording. The first segment printed by `ggt decode --diag` is `行:列`; events without a position (unreadable file, usage error) have only the code name and description.
 
 ---
 
 ## 12. Verification evidence
 
-- `npm test` → `ℹ tests 134 / ℹ pass 134 / ℹ fail 0` (7 files on the language side).
+- `npm test` → `ℹ tests 142 / ℹ pass 142 / ℹ fail 0` (7 files on the language side).
 - `./bin/gg.ts check` passes silently on all 7 examples (5 Chinese + 2 dialect ones).
 - Measured examples:
   - `咕嘎咕嘎.咕咕` → 24 bits = `E5 97 A8` = the UTF-8 of 「嗨」.
@@ -360,16 +362,16 @@ The help frame (`咕咕嘎嘎 嘎嘎嘎`) works the same way. **The shell does n
   - `咕咕嘎嘎.咕咕` → 320 bits (a `当` loop + object state).
   - `嘎嘎咕咕.咕咕` → 24 bits = `F0 FF FF` (inheritance + dynamic dispatch).
   - `咕嘎嘎咕.咕咕` fed with `printf 35` → 128 bits: first `51+53=104`, then `51-53=-2` (two 64-bit integers).
-- The three dialects produce **byte-identical** bit streams: `examples/ガググガグ.ググ`, `examples/gugugaga.gu`, and the Chinese sample extracted from `SPEC.md` §11 — 192 bytes each (= 64 bits), pairwise equal under `cmp`; all three print 64 `咕`. A lone `g` (`咕：gu？ g`) → exit 2 (E1001), and a `.GU` uppercase-suffix file can also be executed implicitly.
+- The three dialects are three spellings of one program: `examples/ガググガグ.ググ`, `examples/gugugaga.gu` and the Chinese sample extracted from `SPEC.md` §11 normalize to the same 64 bits. The glyphs follow the suffix — Chinese 64 characters (192 bytes), Japanese 64 characters (192 bytes), English 128 characters (128 bytes). A lone `g` (`咕：gu？ g`) → exit 2 (E1001), and a `.GU` uppercase-suffix file can also be executed implicitly.
 - CLI behaviour measured (every conclusion below comes from decoding frames): `嘎`→0; `嘎嘎`→0 and silent; division by zero→1 (E4005); illegal character→2 (E1001 非法字符“噶”（U+5676）); no arguments / missing file / `嘎嘎嘎嘎 咕咕咕` / unknown subcommand→3; `嘎嘎嘎`→0. **The stderr of every path was checked character by character: apart from `咕`/`嘎`/space/newline, not a single character.**
 - The minimal runnable sample from `SPEC.md` §11 is extracted and executed directly by an integration test, printing 64 bits of all `咕` (= integer 0).
-- `npm run test:vscode` → `ℹ tests 167 / ℹ pass 167 / ℹ skip 0 / ℹ fail 0`; `npm run test:all` → language 134 + translator 100 + editor extension 167 = **401 all green** (details in §14).
+- `npm run test:vscode` → `ℹ tests 173 / ℹ pass 173 / ℹ skip 0 / ℹ fail 0`; `npm run test:all` → language 142 + translator 104 + editor extension 173 = **419 all green** (details in §14).
 
 ---
 
 ## 13. Sister project: the 咕嘎翻译器 (implemented, see `translator/`)
 
-The language side of this repository stops at “bare bit stream + encoding conventions (§4)”; turning a bit stream back into human-readable text is the job of `translator/` (an independent subproject: its own `package.json` / `README.md` / 100 tests, zero dependencies, importing no module of this repository). Beyond bit streams it also translates **diagnostic frames** into human-readable text (`ggt decode --diag`, see §11):
+The language side of this repository stops at “bare bit stream + encoding conventions (§4)”; turning a bit stream back into human-readable text is the job of `translator/` (an independent subproject: its own `package.json` / `README.md` / 104 tests, zero dependencies, importing no module of this repository). Beyond bit streams it also translates **diagnostic frames** into human-readable text (`ggt decode --diag`, see §11):
 
 ```bash
 cd translator
@@ -383,7 +385,7 @@ Decode modes: `--plan <文件>` (exact decoding by a slot table), `--int64`, `--
 
 Why a plan: a bit stream is not self-describing — `64 位整数` and `3 个字节的位串` are indistinguishable at the byte level, so “exact interpretation” has to be given a slot table by a human; when you only want a rough idea, use guess mode.
 
-Running `npm run test:all` at the repository root runs all three test suites in a row (language 134 + translator 100 + editor extension 167 = 401 cases).
+Running `npm run test:all` at the repository root runs all three test suites in a row (language 142 + translator 104 + editor extension 173 = 419 cases).
 
 ---
 
@@ -419,7 +421,7 @@ Three design trade-offs are worth recording:
 
 Three commands (run current file / check current file / show output panel), five settings (`cliPath`, `nodePath`, `checkOnChange`, `debounceMs`, `maxSteps`); the structure and repackaging instructions are in `vscode/README.md`.
 
-The extension ships 11 test files and 167 assertions, all offline, zero dependencies, with `require("vscode")` **forbidden**; 3 of them really spawn `node bin/gg.ts 嘎嘎` and decode the stderr bit stream back into diagnostics (not fake green). So the only deliverable of this project that has never been verified on real hardware is it: coloring, folding feel, snippet Tab jumps and hover popup styling only have static and offline evidence, and it has never been activated in a real VS Code host. This is written here rather than hidden.
+The extension ships 11 test files and 173 assertions, all offline, zero dependencies, with `require("vscode")` **forbidden**; 3 of them really spawn `node bin/gg.ts 嘎嘎` and decode the stderr bit stream back into diagnostics (not fake green). So the only deliverable of this project that has never been verified on real hardware is it: coloring, folding feel, snippet Tab jumps and hover popup styling only have static and offline evidence, and it has never been activated in a real VS Code host. This is written here rather than hidden.
 
 
 ## 15. Multilingual documentation

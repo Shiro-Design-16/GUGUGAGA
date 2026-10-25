@@ -139,8 +139,8 @@ The language has three spellings, **equivalent position by position**, and you c
 Punctuation and whitespace are equivalent in the same way: `！`=`!`, `？`=`?`, `：`=`:`. So the three sources below are **exactly the same semantically** (each prints a 64-bit 1):
 
 ```text
-咕咕嘎嘎！ 嘎咕嘎嘎嘎咕
-    咕：嘎嘎嘎？嘎
+GUGUGAGA! GAGUGAGAGAGU
+    GU:GAGAGA?GA
 ```
 
 ```text
@@ -149,13 +149,13 @@ Punctuation and whitespace are equivalent in the same way: `！`=`!`, `？`=`?`,
 ```
 
 ```text
-GUGUGAGA! GAGUGAGAGU
-    GU: GAGAGA?GA
+GUGUGAGA! GAGUGAGAGAGU
+    GU:GAGAGA?GA
 ```
 
-The repository already contains two dialect samples: `examples/ガググガグ.ググ` (Japanese, indented with full-width spaces) and `examples/gugugaga.gu` (English, mixed case). Their bit streams are byte-for-byte identical to the Chinese sample's.
+The repository already contains two dialect samples: `examples/ガググガグ.ググ` (Japanese, indented with full-width spaces) and `examples/gugugaga.gu` (English, mixed case). They are one and the same program as the Chinese sample: normalize the bit names and all three bit streams agree bit for bit.
 
-**The shell does not follow the dialect**: bit streams on stdout and diagnostic frames on stderr always use the Chinese bit names `咕`/`嘎`; the translator only ever needs one alphabet.
+**The output glyphs follow the file suffix**: a program in `.咕咕` writes and reports `咕`/`嘎`, in `.ググ` it writes `グ`/`ガ`, in `.gu` it writes `GU`/`GA` — for one program, stdout and stderr are always in the same dialect. Help and command-line usage errors have no program behind them, so they stay Chinese. Normalized, the three dialects agree bit for bit, so the translator only ever needs one alphabet (`ggt decode --diag` takes all three).
 
 ---
 

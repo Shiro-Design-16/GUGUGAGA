@@ -209,3 +209,114 @@ test("真实 CLI 端到端：node bin/gg.ts 嘎嘎 坏文件 → E1001 2:7（std
   assert.match(result.issues[0].message, /^[咕嘎]+$/);
   assert.equal(result.issues[0].detail, "非法字符“噶”（U+5676）");
 });
+
+// ---------------------------------------------------------------- 三方言帧（SPEC §1.1）
+
+/** 位名方言表：中文 / 日语片假名 / 日语平假名 / 英文（每位两个字母） */
+const DIALECT_BITS = {
+  zh: { 0: "咕", 1: "嘎" },
+  ja: { 0: "グ", 1: "ガ" },
+  hira: { 0: "ぐ", 1: "が" },
+  en: { 0: "GU", 1: "GA" },
+};
+
+/** 把规范中文位串整帧换成另一方言的写法（英文每位变成两个字母） */
+function inDialect(canonical, dialect) {
+  const map = DIALECT_BITS[dialect];
+  let out = "";
+  for (const ch of canonical) {
+    if (ch === "咕") out += map[0];
+    else out += map[1];
+  }
+  return out;
+}
+
+/** 逐位换方言：第 i 位轮流用 中文 / 日语 / 英语，模拟同一份 stderr 里三种写法混排 */
+function inMixedDialect(canonical) {
+  const order = ["zh", "ja", "en"];
+  let out = "";
+  let index = 0;
+  for (const ch of canonical) {
+    const map = DIALECT_BITS[order[index % order.length]];
+    out += ch === "咕" ? map[0] : map[1];
+    index += 1;
+  }
+  return out;
+}
+
+test("方言帧 · 日语：グ/ガ 帧解出与中文帧完全相同的 issue，面板位串仍是咕/嘎", function () {
+  const canonical = frame(1, 2, 7, "非法字符");
+  const ja = inDialect(canonical, "ja");
+  assert.notEqual(ja, canonical);
+  const frames = decodeFrames(ja);
+  assert.equal(frames.length, 1);
+  assert.equal(frames[0].code, 1);
+  assert.equal(frames[0].line, 2);
+  assert.equal(frames[0].column, 7);
+  assert.equal(frames[0].message, "非法字符");
+  // 内部一律规范化成中文位名：位串与中文帧逐字符一致，复制去 ggt decode --diag 仍解得出
+  assert.equal(frames[0].bits, canonical);
+  assert.deepEqual(parseDiagnostics(ja, FILE), [
+    { line: 2, column: 7, code: "E1001", message: canonical, detail: "非法字符" },
+  ]);
+});
+
+test("方言帧 · 英语大写：GU/GA 每位两字母，解出的 message 仍是纯 咕/嘎", function () {
+  const canonical = frame(4, 3, 5, "语法错误");
+  const en = inDialect(canonical, "en");
+  assert.equal(en.length, canonical.length * 2);
+  const frames = decodeFrames(en);
+  assert.equal(frames.length, 1);
+  assert.deepEqual(
+    [frames[0].code, frames[0].line, frames[0].column, frames[0].message],
+    [4, 3, 5, "语法错误"]
+  );
+  const issues = parseDiagnostics(en, FILE);
+  assert.deepEqual(issues, [
+    { line: 3, column: 5, code: "E2001", message: canonical, detail: "语法错误" },
+  ]);
+  assert.match(issues[0].message, /^[咕嘎]+$/);
+});
+
+test("方言帧 · 三方言混排：同一帧里 咕/グ/GU 交替写也能解，且位串回到纯 咕/嘎", function () {
+  const canonical = frame(1, 2, 7, "非法字符“噶”");
+  const mixed = inMixedDialect(canonical);
+  assert.ok(mixed.indexOf("グ") >= 0 && mixed.indexOf("GU") >= 0, mixed.slice(0, 40));
+  const issues = parseDiagnostics(mixed, FILE);
+  assert.equal(issues.length, 1);
+  assert.equal(issues[0].code, "E1001");
+  assert.equal(issues[0].line, 2);
+  assert.equal(issues[0].column, 7);
+  assert.equal(issues[0].detail, "非法字符“噶”");
+  assert.equal(issues[0].message, canonical);
+  assert.match(issues[0].message, /^[咕嘎]+$/);
+});
+
+test("方言帧 · 小写与大小写混写：gu/ga、Gu/gA、ぐ/が 都认", function () {
+  const canonical = frame(1, 2, 7, "非法字符");
+  const lower = inDialect(canonical, "en").toLowerCase();
+  const alternate = inDialect(canonical, "en")
+    .split("")
+    .map(function (ch, index) {
+      return index % 2 === 0 ? ch : ch.toLowerCase();
+    })
+    .join("");
+  const hira = inDialect(canonical, "hira");
+  for (const sample of [lower, alternate, hira]) {
+    const issues = parseDiagnostics(sample, FILE);
+    assert.equal(issues.length, 1, JSON.stringify(sample.slice(0, 20)));
+    assert.equal(issues[0].code, "E1001");
+    assert.equal(issues[0].message, canonical);
+    assert.equal(issues[0].detail, "非法字符");
+  }
+});
+
+test("collect：假 CLI 吐日语帧，端到端仍拿到 E1001 2:7 且 error 为 null", async function () {
+  const canonical = frame(1, 2, 7, "非法字符");
+  const resolved = fakeCli(inDialect(canonical, "ja"), 2);
+  const result = await collect({ filePath: FILE, resolved: resolved, timeoutMs: 10000 });
+  assert.equal(result.error, null);
+  assert.deepEqual(result.issues, [
+    { line: 2, column: 7, code: "E1001", message: canonical, detail: "非法字符" },
+  ]);
+});

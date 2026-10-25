@@ -150,3 +150,12 @@ Bit stream input accepts three notations per `SPEC.md` §1.1, **equivalent bit b
 - `--en`: bit names GU / GA (two letters per bit, so the output is twice as long as the bit count), half-width punctuation (prefixes `GAGAGAGA?`, `GAGAGA?`).
 - `--ja` and `--en` together → usage error, exit code 2. Both belong to encode only; giving them to decode or `--diag` reports a usage error as an unknown option (exit code 2).
 - The output of decode and `--diag`, the plan file semantics, and the GGDIAG v1 frame format and code table: **not a single byte changes**.
+
+### 7.3 `--diag` accepts frames in all three dialects (appended by task-33)
+
+The shell's bit-name glyphs follow the source file's suffix (`SPEC.md` §8.1), so a diagnostic frame on stderr may use `咕`/`嘎`, `グ`/`ガ` or `GU`/`GA`.
+
+- The decoder first normalizes the input to 咕/嘎 with §7.1, then filters and parses it as GGDIAG v1; mixing the glyphs bit by bit within one frame is accepted as well.
+- The frame structure, the code table, the output layout (`行:列 码名 正文`, the prefix dropped when both line and column are 0) and the exit codes 0/1/2/3: nothing changes.
+- `--diag` still does not accept `--ja`/`--en` (they belong to encode only; giving them to decode or `--diag` reports a usage error as an unknown option, exit code 2).
+- The price: a `gu`/`ga` letter pair that happens to appear in host warning text is taken as one bit — that is the protocol cost of spelling English bit names in ASCII.

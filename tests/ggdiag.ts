@@ -22,12 +22,27 @@ const MAGIC_VERSION = "101000";
 /** end 3 位 110 */
 const END = "110";
 
-/** 过滤掉一切非 咕/嘎 字符，再翻成 0/1 位串（解码只跟 0/1 打交道）。 */
+/**
+ * 过滤掉一切非位字符，再翻成 0/1 位串（解码只跟 0/1 打交道）。
+ * 三种字形都认：咕/グ = 0，嘎/ガ = 1；英语的两位字母 GU = 0、GA = 1（大小写不敏感）。
+ */
 export function bitStream(stream: string): string {
+  const chars = [...stream];
   let out = "";
-  for (const ch of stream) {
-    if (ch === "咕") out += "0";
-    else if (ch === "嘎") out += "1";
+  for (let i = 0; i < chars.length; i += 1) {
+    const ch = chars[i];
+    if (ch === "咕" || ch === "グ") out += "0";
+    else if (ch === "嘎" || ch === "ガ") out += "1";
+    else if (ch === "G" || ch === "g") {
+      const next = chars[i + 1];
+      if (next === "U" || next === "u") {
+        out += "0";
+        i += 1;
+      } else if (next === "A" || next === "a") {
+        out += "1";
+        i += 1;
+      }
+    }
   }
   return out;
 }

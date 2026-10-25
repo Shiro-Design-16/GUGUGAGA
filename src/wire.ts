@@ -10,6 +10,9 @@
  * 帧长恒为 65 + 8×mlen 位。
  */
 
+import type { Dialect } from "./keywords.ts";
+import { renderBits } from "./keywords.ts";
+
 /** 位 0 / 位 1 的字面量（SPEC.md §12.1）。 */
 export const BIT_ZERO = "咕";
 export const BIT_ONE = "嘎";
@@ -66,10 +69,17 @@ export function messageBytes(message: string): Buffer {
 }
 
 /**
- * 完整帧的位串（咕/嘎 字符），长度 = 65 + 8×mlen。
+ * 完整帧的位串（长度 = 65 + 8×mlen），按 dialect 画成该方言的字形。
+ * 帧的**位**与方言无关：zh/ja 每帧同样的位数，en 只是每位写成两个字母。
  * line 为 0（或负数）表示无位置，此时 col 一律写 0。
  */
-export function frameBits(code: number, line: number, col: number, message: string): string {
+export function frameBits(
+  code: number,
+  line: number,
+  col: number,
+  message: string,
+  dialect: Dialect = "zh",
+): string {
   const msg = messageBytes(message);
   const lineOut = clamp(line, 0xffff);
   const colOut = lineOut === 0 ? 0 : clamp(col, 0xffff);
@@ -81,14 +91,15 @@ export function frameBits(code: number, line: number, col: number, message: stri
     bits(colOut, 16) +
     bits(msg.length, 16);
   for (const byte of msg) out += bits(byte, 8);
-  return out + bits(END, 3);
+  return renderBits(out + bits(END, 3), dialect);
 }
 
-/** 一帧的咕/嘎文本（不含结尾换行；外壳自己决定要不要在帧后补 \n）。 */
+/** 一帧的文本，字形按 dialect（不含结尾换行；外壳自己决定要不要在帧后补 \n）。 */
 export function encodeDiag(
   code: number,
   pos: { line: number; col: number } | null,
   message: string,
+  dialect: Dialect = "zh",
 ): string {
-  return frameBits(code, pos === null ? 0 : pos.line, pos === null ? 0 : pos.col, message);
+  return frameBits(code, pos === null ? 0 : pos.line, pos === null ? 0 : pos.col, message, dialect);
 }

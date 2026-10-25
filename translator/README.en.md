@@ -35,7 +35,7 @@ With no file it reads stdin (an empty input when stdin is a terminal); with a fi
 - `--plan`: one slot at a time, driven by a plan file; every bit has to be consumed exactly (one bit too many or too few is an error).
 - No mode given: a multiple of 64 is guessed as `--int64`, otherwise a multiple of 8 is guessed as `--bytes`, otherwise `--bits`; the explanation goes to stderr, stdout carries only the result.
 - `--diag`: no guessing, it decodes the host's GGDIAG v1 diagnostic frames directly (see the next section), and is mutually exclusive with the five modes above.
-- The input bit stream of every mode may mix all three dialects (see “Dialects”); `--diag` is the exception — diagnostic frames only ever accept 咕 / 嘎.
+- The input bit stream of every mode may mix all three dialects (see “Dialects”), and `--diag` is no exception: the glyphs of a diagnostic frame follow the program's dialect (a .ググ file gives グ / ガ, a .gu file gives GU / GA), while the frame structure stays the same.
 
 ## Exit codes
 
@@ -61,7 +61,7 @@ Bit stream input accepts the three spellings of `SPEC.md` §1.1, equivalent posi
 
 - An English bit name is two ASCII letters read as a pair: gu is 0, ga is 1; a lone g / G is an illegal character like any other and reports an error (exit code 1).
 - Whitespace is still space, tab, newline and carriage return, and on top of that **a U+3000 full-width space also counts as whitespace** (SPEC §1.1, the indentation of Japanese sources).
-- Inside, everything is normalized to 咕 / 嘎, so plan files, GGDIAG frames and diagnostic text do not change; `--diag` still accepts only 咕 / 嘎 (SPEC §8.1: the shell does not follow the dialect).
+- Inside, everything is normalized to 咕 / 嘎, so plan files, the GGDIAG frame structure and diagnostic text do not change; only the glyphs carried by a frame change, and `--diag` reads them through the same normalization (two letters per English bit name).
 - Only the input side of decode and the output side of encode change spelling; the bit stream itself, the mode semantics and the exit codes do not.
 
     printf 41 | node bin/ggt.ts encode --ja                # ググガガグガググググガガグググガ
@@ -76,7 +76,7 @@ Bit stream input accepts the three spellings of `SPEC.md` §1.1, equivalent posi
 
 ## Diagnostic frames (--diag)
 
-The host writes its error reports to stderr as GGDIAG v1 frames (`SPEC.md` §12, pure 咕 / 嘎); `--diag` turns them back into human language, one frame per line:
+The host writes its error reports to stderr as GGDIAG v1 frames (`SPEC.md` §12; only the glyphs of the bit names vary — 咕 / 嘎, グ / ガ or GU / GA, following the program's dialect); `--diag` turns them back into human language, one frame per line:
 
     ../bin/gg.ts run 不存在的.咕咕 2>&1 | node bin/ggt.ts decode --diag
     # 读文件失败 无法读取文件 不存在的.咕咕：ENOENT: no such file or directory, open '不存在的.咕咕'
@@ -90,7 +90,7 @@ The line format:
     用法错误 未知子命令“foo”     位置是 0 时：码名 正文
 
 - Code names: 1–21 are `E1001`…`E4012` from `SPEC.md` §9 (the order is the error-code table); 0 usage error, 22 help, 23 read-file failure, 24 internal error, anything else prints 未知事件 <码>.
-- Only 咕 / 嘎 are recognized: host warnings and the spaces and newlines between frames are all ignored, so you can pipe the whole of stderr straight in.
+- Bit names are normalized across the three dialects (咕 / グ / GU is 0, 嘎 / ガ / GA is 1, case-insensitive, two letters per English bit); host warnings and the spaces and newlines between frames are all ignored, so you can pipe the whole of stderr straight in.
 - Frame boundaries: when magic(1010) / version(00) do not match it shifts one position and keeps looking; a frame whose end is not 110 is dropped whole; a message that was not written in full (truncated) is dropped too, but neither swallows the frames behind it.
 - No frame at all: one line on stderr, ggt: 没有找到诊断帧, exit code 1.
 - `--diag` is mutually exclusive with `--plan` / `--int64` / `--bytes` / `--hex` / `--bits`; giving both is a usage error (exit code 2).
@@ -127,15 +127,16 @@ The line format:
 15. When only half a position is given (a line that is not 0, a column that is 0) it still prints “line:column” and does not lose the line number; only when both are 0 is the position left out. When the text is empty, no trailing space is printed.
 16. On a bad frame it shifts a single position and resynchronizes instead of skipping the “claimed message length”: a truncated header may be noise, with complete frames behind it.
 17. Diagnostic text is decoded as non-strict UTF-8 (a bad byte becomes U+FFFD); one bad byte should not destroy a whole frame.
-18. The three dialects act in exactly two places, “input parsing” and “encode output”: internal bit streams, plan slots and GGDIAG frames are always 咕 / 嘎, so the dialect never seeps into the protocol layer.
+18. The three dialects act in exactly two places, “input parsing” and “encode output”: internal bit streams, plan slots and GGDIAG frames are always 咕 / 嘎, so the dialect never seeps into the protocol layer; `--diag` normalizes at the entrance per `SPEC` §1.2, which is why the frame structure does not change by a single bit.
 19. With `--en` a bit name is two characters per bit, so the output is twice as long as the bit count; gu and GA may be mixed in one input (case-insensitive).
 20. `--ja` / `--en` hang off encode only, adding no decode options: decode's output is human language already and needs no dialect.
+21. The English bit names of `--diag` are read two letters at a time (never counted per character), so a gu / ga letter pair that happens to appear in a host warning is taken as a bit — the inherent ambiguity the three dialects share; the protocol only guarantees the glyphs of a bit name.
 
 ## Tests
 
     cd translator && npm test
 
-`node:test` + `node:assert/strict`, 100 cases in total, across eight files: bits / decode / plan / encode / cli / diag / dialect / e2e.
+`node:test` + `node:assert/strict`, 104 cases in total, across eight files: bits / decode / plan / encode / cli / diag / dialect / e2e.
 The CLI tests run `node bin/ggt.ts` through `spawnSync` (no need for the executable bit); e2e generates bit streams with `../bin/gg.ts`.
 
 ## The plan file format (exact decoding)

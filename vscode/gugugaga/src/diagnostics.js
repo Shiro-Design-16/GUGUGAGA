@@ -16,8 +16,9 @@
  *   mlen     16 位   正文的字节数
  *   正文   mlen×8 位  UTF-8 字节，逐字节 MSB 在前
  *   end 3 位 = 110
- * 总长恒为 65 + 8×mlen 位。帧与帧之间可以夹空格、换行；解码器丢弃一切非 咕/嘎 字符，
- * 因此 stderr 里多出来的空白不会影响定位。
+ * 总长恒为 65 + 8×mlen 位。帧与帧之间可以夹空格、换行；解码器按方言把 咕/グ/ぐ、
+ * 嘎/ガ/が、GU/GA 都压成 0/1，并丢弃其余一切字符，因此 stderr 里多出来的空白
+ * 与路径不会影响定位。
  *
  * 容错口径（照抄 SPEC §12）：magic 或 version 不符 → 向后挪 1 位继续找下一帧；
  * 头对上了但 end 不是 110、或剩余位不够读完正文 → 该帧作废，挪过这段 magic 继续找。
@@ -29,6 +30,14 @@ const { runCheck } = require("./cli.js");
 
 const BITS_ZERO = "咕";
 const BITS_ONE = "嘎";
+
+/**
+ * 三种方言的位名（SPEC §1.1）：中文 咕/嘎、日语 グ/ガ（兼容平假名 ぐ/が）、
+ * 英语 GU/GA（每位两个字母）。帧结构不随方言变，只有位名的写法变，
+ * 所以解码器只要先把位名压成 0/1，后面的 layout 就完全一致。
+ */
+const ZERO_CHARS = new Set([BITS_ZERO, "グ", "ぐ"]);
+const ONE_CHARS = new Set([BITS_ONE, "ガ", "が"]);
 
 /** magic 4 位 + version 2 位 */
 const HEAD_PATTERN = [1, 0, 1, 0, 0, 0];
@@ -70,13 +79,39 @@ function isDiagnosticCode(code) {
   return typeof code === "number" && code >= 1 && code <= CODE_NAMES.length;
 }
 
-/** 把任意文本压成位数组：只认 咕=0 / 嘎=1，其余字符全部丢弃 */
+/**
+ * 把任意文本压成位数组：咕/グ/ぐ = 0，嘎/ガ/が = 1，GU/GA = 0/1（大小写不敏感），
+ * 其余字符全部丢弃。压完只留 0/1，方言差异到此为止。
+ */
 function bitsOf(text) {
   const source = typeof text === "string" ? text : "";
+  // 按码点扫：英文位名占两个字母，必须一回合吃掉，否则 GU 会被当成两个无关字符丢掉
+  const chars = Array.from(source);
   const bits = [];
-  for (const ch of source) {
-    if (ch === BITS_ZERO) bits.push(0);
-    else if (ch === BITS_ONE) bits.push(1);
+  for (let i = 0; i < chars.length; i += 1) {
+    const ch = chars[i];
+    if (ZERO_CHARS.has(ch)) {
+      bits.push(0);
+      continue;
+    }
+    if (ONE_CHARS.has(ch)) {
+      bits.push(1);
+      continue;
+    }
+    if (ch === "G" || ch === "g") {
+      const next = chars[i + 1];
+      if (next === "U" || next === "u") {
+        bits.push(0);
+        i += 1;
+        continue;
+      }
+      if (next === "A" || next === "a") {
+        bits.push(1);
+        i += 1;
+        continue;
+      }
+    }
+    // 其它字符（空白、路径、日志杂音）丢弃：解码器只在位流上找帧
   }
   return bits;
 }

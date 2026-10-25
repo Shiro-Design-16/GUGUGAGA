@@ -192,12 +192,16 @@ function renderBitsBigInt(value: bigint): string {
   return out;
 }
 
-test("命令行：--diag 只认中文位名（SPEC §8.1 外壳不跟随方言）", () => {
+test("命令行：--diag 也吃三方言帧（帧结构不变，只换位名字形）", () => {
   const frame = diagFrame(0, "坏");
-  assert.equal(runGgt(["decode", "--diag"], frame).stdout, "用法错误 坏\n");
+  const want = "用法错误 坏\n";
+  assert.equal(runGgt(["decode", "--diag"], frame).stdout, want);
   const ja = runGgt(["decode", "--diag"], toJa(frame));
-  assert.equal(ja.status, 1);
-  assert.match(ja.stderr, /没有找到诊断帧/);
+  assert.equal(ja.status, 0, ja.stderr);
+  assert.equal(ja.stdout, want);
+  const en = runGgt(["decode", "--diag"], toEn(frame));
+  assert.equal(en.status, 0, en.stderr);
+  assert.equal(en.stdout, want);
 });
 
 test("round-trip：encode --ja/--en 的输出能被 decode 原样吃回去", () => {

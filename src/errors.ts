@@ -5,6 +5,7 @@
  */
 
 import type { Pos } from "./ast.ts";
+import type { Dialect } from "./keywords.ts";
 import { encodeDiag, EVENT } from "./wire.ts";
 
 export const CODE = {
@@ -63,10 +64,11 @@ export const EXIT = {
 } as const;
 
 /**
- * 把 GgError 变成一帧（咕/嘎 文本，不含结尾换行）：
+ * 把 GgError 变成一帧（不含结尾换行）：
  * 码 = CODE 表下标 + 1，位置取 err.pos，正文取 err.message。
  * 文件名与源码行都不进帧——帧里没有这两个字段，解码端靠位置自己定位。
+ * dialect 只决定 0/1 画成哪种字形，帧的位结构不变（SPEC §1.4）。
  */
-export function frameOfError(err: GgError): string {
-  return encodeDiag(codeNumber(err.code), err.pos, err.message);
+export function frameOfError(err: GgError, dialect: Dialect = "zh"): string {
+  return encodeDiag(codeNumber(err.code), err.pos, err.message, dialect);
 }

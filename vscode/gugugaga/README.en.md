@@ -16,7 +16,7 @@
 - TextMate syntax highlighting `source.gugugaga`: 30 reserved tokens, integer and bit-string literals, names and punctuation.
 - Reserved words, skeleton snippets and names already defined in this document, offered by context (top level / class body / statement / expression / call).
 - Hovering a token shows what it means and which family it belongs to; this wording again uses only 咕/嘎/！/？/：/space/newline.
-- Brings the **real** diagnostics of `咕咕嘎嘎 嘎嘎` into the editor: it decodes the 咕/嘎 diagnostic frames on stderr into Problems entries and squiggles.
+- Brings the **real** diagnostics of `咕咕嘎嘎 嘎嘎` into the editor: it decodes the diagnostic frames on stderr (bit names follow the suffix: `咕`/`嘎`, `グ`/`ガ`, `GU`/`GA`; the decoder takes all three) into Problems entries and squiggles.
 
 **It is not**
 
@@ -57,7 +57,7 @@ The three dialects side by side (all of them can be mixed inside one file and ev
 
 ### 3. Syntax diagnostics
 
-On open, on save, on edit (350ms debounce by default) and when you run the command by hand, the extension runs `咕咕嘎嘎 嘎嘎 <文件>` once in the background. stderr carries no text, only **咕/嘎 diagnostic frames** (GGDIAG v1, format in `SPEC.md` §12); `src/diagnostics.js` ships its own zero-dependency decoder that turns a frame into `{行, 列, 码, 说明}` before handing it to VS Code. Diagnostics never execute the program, so only `E1xx / E2xx / E3xx` can show up.
+On open, on save, on edit (350ms debounce by default) and when you run the command by hand, the extension runs `咕咕嘎嘎 嘎嘎 <文件>` once in the background. stderr carries no text, only **diagnostic frames** (GGDIAG v1, format in `SPEC.md` §12; the glyph of the bit names follows the file's suffix: `咕`/`嘎`, `グ`/`ガ`, `GU`/`GA`); `src/diagnostics.js` ships its own zero-dependency decoder that turns a frame into `{行, 列, 码, 说明}` before handing it to VS Code. Diagnostics never execute the program, so only `E1xx / E2xx / E3xx` can show up.
 
 ## Diagnostics need a reachable CLI
 
@@ -111,7 +111,7 @@ Running **does not capture output**: the real program bit stream stays in the te
 
 ## The purity gate
 
-The output panel is a user-visible surface, so it allows only 咕/嘎/！/？/：/space. Every `append()` goes through `isPureLine()` first: an impure line is neither written to the panel nor thrown, the full content falls back to `console.error` (the developer console). So questions like “why are there no diagnostics” require Help → Toggle Developer Tools.
+The output panel is a user-visible surface, so it allows only the bit names of the three dialects (`咕`/`嘎`, `グ`/`ガ`, paired `GU`/`GA`) plus `！？：!?:`, spaces and U+3000. A looser gate does not change the content: the lines the extension itself writes into the panel are still all Chinese bit names. Every `append()` goes through `isPureLine()` first: an impure line is neither written to the panel nor thrown, the full content falls back to `console.error` (the developer console). So questions like “why are there no diagnostics” require Help → Toggle Developer Tools.
 
 ## Known limitations
 
@@ -146,5 +146,5 @@ src/cli.js                        CLI 调用桥（三级回退 + PATH 探测）
 src/run.js                        运行按钮（命令行、引号、复用终端）
 src/diagnostics.js                GGDIAG 帧解码 + 诊断采集
 src/extension.js                  激活入口
-tests/                            11 个文件、167 条断言（含 4 条真 CLI e2e、9 条纯净度闸）
+tests/                            11 个文件、173 条断言（含 4 条真 CLI e2e、9 条纯净度闸）
 ```

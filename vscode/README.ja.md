@@ -31,7 +31,7 @@ VS Code の「拡張機能」ビュー → 右上の `...` → **VSIX からの�
 | ハイライト | 30 個の予約トークン + 二種類のリテラル（ビット列はまとめて着色）+ クラス名 / メソッド名 / 変数名 + `！？`/`：` の約物、35 条のフラットな規則；各規則は 咕/グ/ぐ/GU、嘎/ガ/が/GA、全角 / 半角の `！？：`/`!?:` を同時に扱い、`GU`/`GA` は二文字で一つのトークン | `gugugaga/syntaxes/gugugaga.tmLanguage.json` |
 | 補完 | コンテキストに応じて予約語、骨格スニペット、その文書で定義済みの名前を提示；`！？` の直後はメソッド名だけ | `gugugaga/src/completion.js` |
 | ホバー | トークンの意味、一族の所属、用法の例（文案も 咕/嘎 で書かれています） | `gugugaga/src/hover.js` |
-| 診断 | 開く / 保存 / 編集（デバウンス 350ms）のたびに本物の `咕咕嘎嘎 嘎嘎` を走らせ、stderr の GGDIAG フレームをデコードして、`E1xx`~`E3xx` を波線と Problems の項目に変えます | `gugugaga/src/cli.js` + `src/diagnostics.js` |
+| 診断 | 開く / 保存 / 編集（デバウンス 350ms）のたびに本物の `咕咕嘎嘎 嘎嘎` を走らせ、stderr の GGDIAG フレームをデコードして（位名の字形はソースファイルの拡張子に追随：`咕`/`嘎`、`グ`/`ガ`、`GU`/`GA` の三通りをデコーダがすべて解します）、`E1xx`~`E3xx` を波線と Problems の項目に変えます | `gugugaga/src/cli.js` + `src/diagnostics.js` |
 | 実行 | エディタのタイトルバー右上の ▶ と右クリックメニュー「咕咕嘎嘎！ 咕咕嘎嘎」——`咕咕嘎嘎 <文件>` を統合ターミナルへ送ります（`咕咕嘎嘎` という名前の同じターミナルを再利用）、未保存のドキュメントは先に保存；タイトルバーのアイコンは codicon `$(play)` で、配色は明暗テーマに追随します | `gugugaga/src/run.js` |
 
 実行ボタンは**出力をキャプチャしません**：プログラムが吐くのはビットストリームだけですし、stdin を食わせ、自分で `| ggt decode --bytes` に繋ぎ、終了コードも見られるのはターミナルのほうです。コマンドラインは**暗黙実行**（ファイルパスだけを渡し、動作語 `嘎嘎` は付けません）を使い、組み立て時に POSIX/win32 の規則で引数をクォートするので、パスに空白があっても崩れません。キーボードにはショートカットを割り当てていません：コマンドパレットに ASCII のキーバインドを含む項目があると、純粋性が壊れるからです。
@@ -50,7 +50,7 @@ VS Code の「拡張機能」ビュー → 右上の `...` → **VSIX からの�
 
 ## 外殻の純粋性：どの字が咕嘎で、どれが ASCII でなければならないか
 
-**咕嘎 で書かれているもの**（ユーザーの目に触れるものすべて）：`displayName`、コマンドのタイトル、出力パネルのタイトルと内容、Problems パネルのソース列（診断コレクション名 `咕咕嘎嘎`）、5 個の設定のグループ見出し、スニペットの `description`、補完候補の `detail`/`documentation`、ホバーの文案、`cliPath` の既定値（`咕咕嘎嘎`）。パネルに書く前には実行時のゲート `isPureLine()` もあり、咕/嘎/！/？/：/空白 以外を含む行はパネルに書かず開発者コンソールにだけ出します；`tests/purity.test.js` は変異テストで、このゲートが実際に拒むことを示します。
+**咕嘎 で書かれているもの**（ユーザーの目に触れるものすべて）：`displayName`、コマンドのタイトル、出力パネルのタイトルと内容、Problems パネルのソース列（診断コレクション名 `咕咕嘎嘎`）、5 個の設定のグループ見出し、スニペットの `description`、補完候補の `detail`/`documentation`、ホバーの文案、`cliPath` の既定値（`咕咕嘎嘎`）。パネルに書く前には実行時のゲート `isPureLine()` もあり、三つの方言の位名（`咕`/`嘎`、`グ`/`ガ`、対になった `GU`/`GA`）と `！？：!?:`、空白と U+3000 だけを認め、それ以外を含む行はパネルに書かず開発者コンソールにだけ出します；`tests/purity.test.js` は変異テストで、このゲートが実際に拒むことを示します。
 
 **ASCII のままでなければならないもの**：拡張機能の `name`/`publisher`、`engines.vscode`、`main`、`activationEvents`、`languages[0].id`、`grammars[0].scopeName`、コマンド id、設定 id と `type`/`scope`。これらは文案ではなく **VS Code schema の照合キー** です——拡張機能の識別子、アクティベーションの契機、TextMate `source.gugugaga` のインジェクション、コマンドパレット API は、どれもこの文字列で照合され、一文字でも変えると拡張機能が読み込まれません。同じ理由で、`nodePath` の既定値は `node` しかあり得ません。
 
@@ -89,8 +89,8 @@ unzip -p vscode/gugugaga-language.vsix extension.vsixmanifest   # 看 VSIX 清�
 ## テスト
 
 ```bash
-node --test "vscode/gugugaga/tests/*.test.js"   # 167 条，11 个文件
-npm run test:all                                # 134 + 100 + 167 = 401 条
+node --test "vscode/gugugaga/tests/*.test.js"   # 173 条，11 个文件
+npm run test:all                                # 142 + 104 + 173 = 419 条
 ```
 
 4 条のエンドツーエンド用例は実際に `node bin/gg.ts 嘎嘎` を spawn して本物のフレームをデコードするので、見かけの緑ではありません；9 条の純粋性用例は出力パネルの実行時ゲートに対して挙動テストと変異テストを行います；すべてオフライン、依存ゼロで、`require("vscode")` は**しません**（ホストのモックは `Module._load` でフックします）。
@@ -100,15 +100,15 @@ npm run test:all                                # 134 + 100 + 167 = 401 条
 | ファイル | 行数 | 役割 |
 | --- | --- | --- |
 | `gugugaga/package.json` | 118 | マニフェスト：言語、文法、スニペット、3 個のコマンド、メニュー、アイコン、5 個の設定 |
-| `gugugaga/src/extension.js` | 379 | アクティベーションの入口、デバウンス、コマンド登録、出力パネル（`isPureLine` のパネルゲートを含む） |
+| `gugugaga/src/extension.js` | 408 | アクティベーションの入口、デバウンス、コマンド登録、出力パネル（`isPureLine` のパネルゲートを含む） |
 | `gugugaga/src/cli.js` | 214 | CLI 呼び出しの橋渡し：三段階フォールバック、PATH 探索、`execFile` ラップ |
-| `gugugaga/src/diagnostics.js` | 245 | GGDIAG フレームのデコード → エディタ診断 |
+| `gugugaga/src/diagnostics.js` | 280 | GGDIAG フレームのデコード → エディタ診断 |
 | `gugugaga/src/completion.js` | 303 | コンテキストの走査と候補の生成 |
 | `gugugaga/src/hover.js` | 167 | トークンの位置特定と意味の説明 |
 | `gugugaga/src/keywords.js` | 316 | 予約語表（30 条、唯一の JS 真実の源） |
 | `gugugaga/src/run.js` | 151 | 実行ボタン：コマンドラインの解析、引用符、ターミナルの再利用 |
 | `gugugaga/syntaxes/gugugaga.tmLanguage.json` | 336 | 35 条のフラットな match 規則 |
-| `gugugaga/tests/*.test.js` | 11 個 / 167 条 | 4 条の本物の CLI e2e（うち 1 条は `ggt decode --diag` へ流し込む）と 9 条の純粋性ゲートのテストを含む |
+| `gugugaga/tests/*.test.js` | 11 個 / 173 条 | 4 条の本物の CLI e2e（うち 1 条は `ggt decode --diag` へ流し込む）と 9 条の純粋性ゲートのテストを含む |
 
 ## 既知の制限
 

@@ -48,6 +48,7 @@ One language, **three spellings (dialects)**, equivalent position by position: b
 
 - Encoding UTF-8, no BOM, newlines LF.
 - Source file suffixes (case-insensitive): `.咕咕`, `.ググ`, `.gu`, `.gugugaga`. The CLI and the VS Code extension share this one table, so a `.GU` file runs directly too.
+- Output glyphs follow that table too: the program bit stream and diagnostic frames use the bit names of the dialect matching the suffix (`咕`/`嘎`, `グ`/`ガ`, `GU`/`GA`); see §8.1 for the rules. Bit order and field layout are exactly the same in all three dialects.
 
 ## 2. Lexing
 
@@ -262,7 +263,7 @@ The block of `咕咕嘎嘎！ <name>` is the program entry: a **static context**
 
 ## 6. Output (bit stream)
 
-- The only output channel is `咕：<expression>`. What reaches stdout is a **continuous bare bit stream**: only `咕`(0) and `嘎`(1), no separator, no newline, no trailing newline.
+- The only output channel is `咕：<expression>`. What reaches stdout is a **continuous bare bit stream**: only bit names 0 and 1, no separator, no newline, no trailing newline. Which glyphs those bit names are drawn with follows the source file suffix; see §8.1.
 - Encoding convention (a future "Gugugaga translator" decodes by it):
 
 | Value type | Output |
@@ -271,6 +272,8 @@ The block of `咕咕嘎嘎！ <name>` is the program entry: a **static context**
 | bit string | as-is, bit for bit |
 | boolean | 8 bits: false = 8 `咕`, true = 8 `嘎` |
 | null / object | E4006 (cannot be printed) |
+
+- The `咕`/`嘎` in the table are the Chinese bit names; other dialects swap in the matching glyphs per §1.1, and neither the bit count nor the bit order ever changes.
 
 - Strings are always represented as **bit strings**, by a UTF-8 convention: each byte is 8 bits, high bit first, emitted byte by byte in order (so a whole string stays 8-bit aligned).
 - Example: `咕：嘎嘎嘎嘎？咕嘎咕` → outputs `咕嘎咕` (3 bits).
@@ -310,7 +313,10 @@ The command name is `咕咕嘎嘎` (installed aliases: `ググガガ`, `gggg`, `
 
 - Every failure path (lexical / grammar / static / runtime / usage / unreadable file / internal crash) writes **nothing but** stderr frames: no readable characters at all, no host exception stack printed, no source line highlighted into the terminal.
 - An unexpected host-level exception (a bug in the interpreter itself) must also be caught by the shell as one `内部错误` frame whose body is that exception's message — it is **still encoded inside the frame**, and the screen still shows 咕/嘎.
-- So the only characters that can appear in a terminal are `咕`/`嘎`, spaces, and newlines: **the shell does not follow the dialect**, diagnostic frames and the program bit stream always use the Chinese bit names. Whether a source line is shown to a human is the translator's call, not the interpreter's.
+- So the only characters that can appear in a terminal are **bit names**, spaces, and newlines. Bit names **follow the source file suffix** (§1.4): `.咕咕` uses `咕`/`嘎`, `.ググ` uses `グ`/`ガ`, `.gu`/`.gugugaga` use `GU`/`GA` (two letters per bit). The program bit stream and diagnostic frames use the same glyphs, so one program's stdout and stderr are always in the same dialect.
+- Exceptions: the help frame (`嘎嘎嘎`) and command-line usage errors (wrong argument, illegal step-count bit string, missing filename) have no specific program behind them and always use the Chinese `咕`/`嘎`. A frame for an unreadable file still follows that file's suffix when the filename carries a §1.4 suffix; when the suffix cannot be recognized, Chinese is used.
+- The three dialects are just three spellings of the same string of bits: normalize the bit names (§1.2) and stdout and stderr are **bit-for-bit identical**. Japanese and Chinese are one character per bit and English is two characters per bit, so English has twice the characters and actually fewer bytes.
+- A frame's **body** is always the original UTF-8 Chinese text — it is only bytes being carried, never translated per dialect; the only thing that changes is which glyph a 0/1 is drawn as. Whether a source line is shown to a human is the translator's call, not the interpreter's.
 - To read something human: hand stderr to the translator.
 
 ```sh
@@ -409,17 +415,17 @@ GUGUGAGA! GAGUGUGAGU
 ```
 
 - English bit names are case-insensitive: `Gu`/`gU`/`gu` are the same as `GU`, and a whole program written in lowercase is legal.
-- Both samples are **bit-for-bit identical** to the Chinese sample above once the bit names are normalized (spaces and newlines are only separators and take no part in the bit string), and actually running all three gives the same output (64 `咕` each).
+- Both samples are **bit-for-bit identical** to the Chinese sample above once the bit names are normalized (spaces and newlines are only separators and take no part in the bit string). Actually running all three gives the same string of 64 bits, with only the glyphs following the suffix: the Chinese sample is 64 `咕`/`嘎` (192 bytes), the Japanese sample is 64 `グ`/`ガ` (192 bytes), and the English sample is 128 `GU`/`GA` letters (128 bytes).
 
 ## 12. Shell bit-stream protocol GGDIAG v1
 
-On stderr the shell writes "diagnostic frames". A frame consists only of `咕` (0) and `嘎` (1), with not one readable character; the translator (a sibling project) turns it back into human language. **Human language is not in this language** — it is only bytes being carried.
+On stderr the shell writes "diagnostic frames". A frame consists only of bit names 0 and 1 (the glyphs follow the suffix; see §8.1), with not one readable character; the translator (a sibling project) turns it back into human language. **Human language is not in this language** — it is only bytes being carried.
 
 ### 12.1 Bit order
 
 - Every field in a frame is **MSB first** (the highest bit is written first).
 - `咕` = 0, `嘎` = 1.
-- Spaces or newlines may sit between frames; the decoder ignores every non-`咕`/`嘎` character (a host warning should not destroy the whole stream).
+- Spaces or newlines may sit between frames; the decoder first normalizes the bit names of all three dialects to `咕`/`嘎` per §1.2, then ignores every remaining character (a host warning should not destroy the whole stream).
 
 ### 12.2 Frame layout
 

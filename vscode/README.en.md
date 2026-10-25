@@ -31,7 +31,7 @@ Or in VS Code open the Extensions view → `...` in the top right → **Install 
 | Highlighting | 30 reserved tokens + two literal kinds (a whole bit string gets one colour) + class/method/variable names + `！？`/`：` punctuation, in 35 flat rules; every rule accepts 咕/グ/ぐ/GU, 嘎/ガ/が/GA and both the full-width and the ASCII `！？：`/`!?:`; `GU`/`GA` are one token made of two letters | `gugugaga/syntaxes/gugugaga.tmLanguage.json` |
 | Completion | Offers reserved words, skeleton snippets and names already defined in this document, depending on context; after `！？` it offers method names only | `gugugaga/src/completion.js` |
 | Hover | Token meaning, which family it belongs to, and a usage example (the prose is written in 咕/嘎 as well) | `gugugaga/src/hover.js` |
-| Diagnostics | On open/save/edit (350ms debounce) it really runs `咕咕嘎嘎 嘎嘎`, decodes the GGDIAG frames on stderr, and turns `E1xx`~`E3xx` into squiggles and Problems entries | `gugugaga/src/cli.js` + `src/diagnostics.js` |
+| Diagnostics | On open/save/edit (350ms debounce) it really runs `咕咕嘎嘎 嘎嘎`, decodes the GGDIAG frames on stderr (the bit-name glyphs follow the source file's suffix: `咕`/`嘎`, `グ`/`ガ`, `GU`/`GA` — the decoder reads all three), and turns `E1xx`~`E3xx` into squiggles and Problems entries | `gugugaga/src/cli.js` + `src/diagnostics.js` |
 | Run | The ▶ in the top right of the editor title bar and the context-menu item "咕咕嘎嘎！ 咕咕嘎嘎" — sends `咕咕嘎嘎 <文件>` to the integrated terminal (reusing the single terminal named `咕咕嘎嘎`), saving a dirty document first; the title-bar icon is the codicon `$(play)`, so its colour follows the light and dark themes | `gugugaga/src/run.js` |
 
 The run button deliberately **does not capture output**: a program only emits a bit stream, and the terminal is the only place that can feed stdin, pipe into `| ggt decode --bytes`, and show the exit code. The command line takes the **implicit form** (just the file path, without the action word `嘎嘎`); when the command is assembled, arguments are quoted by POSIX/win32 rules, so a path with spaces does not fall apart. No shortcut key is bound: a command-palette entry carrying an ASCII chord would ruin the purity.
@@ -50,7 +50,7 @@ You can mix them inside the same file and the same word (`グ咕GU！` is a sing
 
 ## Shell purity: which characters are 咕嘎, and which must stay ASCII
 
-**Written in 咕嘎** (everything the user can see): `displayName`, command titles, the output panel's title and content, the Problems panel's source column (the diagnostic collection name `咕咕嘎嘎`), the group titles of the 5 settings, snippet `description`, the `detail`/`documentation` of completion candidates, hover text, and the default value of `cliPath` (`咕咕嘎嘎`). Before anything is written to the panel there is a runtime gate `isPureLine()`: it accepts 咕/嘎/！/？/：/space only, and anything else never reaches the panel but goes to the developer console; `tests/purity.test.js` uses mutation tests to prove the gate rejects.
+**Written in 咕嘎** (everything the user can see): `displayName`, command titles, the output panel's title and content, the Problems panel's source column (the diagnostic collection name `咕咕嘎嘎`), the group titles of the 5 settings, snippet `description`, the `detail`/`documentation` of completion candidates, hover text, and the default value of `cliPath` (`咕咕嘎嘎`). Before anything is written to the panel there is a runtime gate `isPureLine()`: it accepts only the bit names of the three dialects (`咕`/`嘎`, `グ`/`ガ`, paired `GU`/`GA`) plus `！？：!?:`, spaces and U+3000; anything else never reaches the panel but goes to the developer console; `tests/purity.test.js` uses mutation tests to prove the gate rejects.
 
 **Must stay ASCII**: the extension `name`/`publisher`, `engines.vscode`, `main`, `activationEvents`, `languages[0].id`, `grammars[0].scopeName`, command ids, and setting ids with their `type`/`scope`. These are not copy but **matching keys in the VS Code schema** — extension identity, activation points, the TextMate `source.gugugaga` injection and the command-palette API all match on these strings, and a single changed character stops the extension from loading. By the same logic, the default value of `nodePath` can only be `node`.
 
@@ -89,8 +89,8 @@ The script first pre-checks the required files, then reads name/version/publishe
 ## Tests
 
 ```bash
-node --test "vscode/gugugaga/tests/*.test.js"   # 167 条，11 个文件
-npm run test:all                                # 134 + 100 + 167 = 401 条
+node --test "vscode/gugugaga/tests/*.test.js"   # 173 条，11 个文件
+npm run test:all                                # 142 + 104 + 173 = 419 条
 ```
 
 The 4 end-to-end cases really spawn `node bin/gg.ts 嘎嘎` and decode real frames, so they are not fake green; the 9 purity cases behaviour-test and mutation-test the runtime gate on the output panel; everything is offline, has zero dependencies, and does **not** `require("vscode")` (the host mock is intercepted through `Module._load`).
@@ -100,15 +100,15 @@ The 4 end-to-end cases really spawn `node bin/gg.ts 嘎嘎` and decode real fram
 | File | Lines | Responsibility |
 | --- | --- | --- |
 | `gugugaga/package.json` | 118 | Manifest: languages, grammars, snippets, 3 commands, menus, icons, 5 settings |
-| `gugugaga/src/extension.js` | 379 | Activation entry point, debounce, command registration, output panel (including the `isPureLine` panel gate) |
+| `gugugaga/src/extension.js` | 408 | Activation entry point, debounce, command registration, output panel (including the `isPureLine` panel gate) |
 | `gugugaga/src/cli.js` | 214 | CLI call bridge: three-level fallback, PATH probing, `execFile` wrapper |
-| `gugugaga/src/diagnostics.js` | 245 | GGDIAG frame decoding → editor diagnostics |
+| `gugugaga/src/diagnostics.js` | 280 | GGDIAG frame decoding → editor diagnostics |
 | `gugugaga/src/completion.js` | 303 | Context scanning and candidate generation |
 | `gugugaga/src/hover.js` | 167 | Token location and meaning |
 | `gugugaga/src/keywords.js` | 316 | Reserved word table (30 entries, the single JS source of truth) |
 | `gugugaga/src/run.js` | 151 | Run button: command-line parsing, quoting, terminal reuse |
 | `gugugaga/syntaxes/gugugaga.tmLanguage.json` | 336 | 35 flat match rules |
-| `gugugaga/tests/*.test.js` | 11 files / 167 cases | Includes 4 real CLI e2e cases (1 of them feeds `ggt decode --diag` back in) and 9 purity-gate tests |
+| `gugugaga/tests/*.test.js` | 11 files / 173 cases | Includes 4 real CLI e2e cases (1 of them feeds `ggt decode --diag` back in) and 9 purity-gate tests |
 
 ## Known limitations
 

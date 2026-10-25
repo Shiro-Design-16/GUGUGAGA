@@ -135,6 +135,25 @@ function render(canonText, lang) {
   return canonText.replace(/[01!?: ]/g, (ch) => (ch === "0" ? s[0] : ch === "1" ? s[1] : ch === "!" ? s.bang : ch === "?" ? s.ques : ch === ":" ? s.colon : " "));
 }
 
+const BIT_ZERO = new Set(["咕", "グ", "ぐ"]);
+const BIT_ONE = new Set(["嘎", "ガ", "が"]);
+// 把三种方言的位名归一成 "0"/"1"，其余字符原样保留（换行等分隔也参与比较）
+function canonBits(text) {
+  const chars = [...text];
+  let out = "";
+  for (let i = 0; i < chars.length; i += 1) {
+    const ch = chars[i];
+    const next = chars[i + 1] || "";
+    if (BIT_ZERO.has(ch)) out += "0";
+    else if (BIT_ONE.has(ch)) out += "1";
+    else if ((ch === "G" || ch === "g") && "UuAa".includes(next)) {
+      out += "Uu".includes(next) ? "0" : "1";
+      i += 1;
+    } else out += ch;
+  }
+  return out;
+}
+
 const tmpRoot = mkdtempSync(join(tmpdir(), "ggi18n-"));
 function runProgram(body, lang, tag) {
   const file = join(tmpRoot, tag + SUFFIX[lang]);
@@ -214,8 +233,9 @@ for (const src of SOURCES) {
         const a = runProgram(rs[k].body, "zh", "src-" + k);
         const b = runProgram(tf[idx].body, lang, lang + "-" + k);
         if (a.code !== b.code) fail(target, "可运行示例 #" + (k + 1) + " 退出码 " + b.code + " ≠ 原文 " + a.code);
-        else if (a.stdout !== b.stdout) fail(target, "可运行示例 #" + (k + 1) + " stdout 与原文不逐字节相同");
-        else notes.push(target + ": 示例 #" + (k + 1) + " 真跑一致（" + a.stdout.length + " 字符，exit " + a.code + "）");
+        else if (canonBits(a.stdout) !== canonBits(b.stdout)) fail(target, "可运行示例 #" + (k + 1) + " 归一化后位流与原文不同");
+        else if (render(canonBits(b.stdout), lang) !== b.stdout) fail(target, "可运行示例 #" + (k + 1) + " 的输出位名不是 " + lang + " 字形");
+        else notes.push(target + ": 示例 #" + (k + 1) + " 真跑一致（" + canonBits(a.stdout).length + " 位，exit " + a.code + "）");
       }
     }
 

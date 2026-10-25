@@ -73,13 +73,30 @@ function int64Bits(value: bigint): string {
   return out;
 }
 
-function expectCleanRun(result: RunResult, label: string): void {
+/** 期望值侧自己实现的方言字形（刻意不复用 src/keywords.ts）。 */
+type Glyphs = readonly [zero: string, one: string];
+const JA: Glyphs = ["グ", "ガ"];
+const EN: Glyphs = ["GU", "GA"];
+
+/** 规范位串（咕/嘎）→ 某方言的字形。 */
+function renderGlyphs(bits: string, glyphs: Glyphs): string {
+  let out = "";
+  for (const ch of bits) out += ch === GU ? glyphs[0] : glyphs[1];
+  return out;
+}
+
+/** 某方言的字形 → 规范位串（咕/嘎），用于「归一化后逐位相同」的比对。 */
+function normalizeGlyphs(text: string, glyphs: Glyphs): string {
+  return text.split(glyphs[1]).join(GA).split(glyphs[0]).join(GU);
+}
+
+function expectCleanRun(result: RunResult, label: string, charset: RegExp = ONLY_BITS): void {
   assert.equal(
     result.status,
     0,
     label + "：退出码应为 0，实际 " + String(result.status) + "；stderr=" + result.stderr,
   );
-  assert.match(result.stdout, ONLY_BITS, label + "：stdout 只应含 咕/嘎，实际=" + JSON.stringify(result.stdout));
+  assert.match(result.stdout, charset, label + "：stdout 只应含该方言的位字形，实际=" + JSON.stringify(result.stdout));
   assert.ok(!result.stdout.includes("\n"), label + "：stdout 是裸位流，不应包含换行");
   assert.equal(result.stderr, "", label + "：成功运行不应有诊断输出，实际=" + result.stderr);
 }
@@ -178,20 +195,27 @@ test("运行期错误：构造器实参个数不符 → 退出码 1、17 号帧�
   assert.match(result.stdout, ONLY_BITS, "出错前已写出的位也应只有 咕/嘎，实际=" + JSON.stringify(result.stdout));
 });
 
-test("多方言样例：日语样例输出 64 个 咕（与 SPEC §11 中文样例是同一份程序）", () => {
+test("多方言样例：.ググ 文件输出日语字形 グ/ガ，归一化后与中文样例逐位相同", () => {
   const result = runExample("ガググガグ.ググ");
-  expectCleanRun(result, "ガググガグ.ググ");
+  // 改断言的理据：位流现在跟随文件后缀方言（SPEC §1.4），日语文件的 0/1 画成 グ/ガ。
+  // 覆盖没有减弱：字符集收紧成 グ/ガ，位数仍是 64，且逐位等于整数 0 的 64 位补码。
+  expectCleanRun(result, "ガググガグ.ググ", /^[グガ]*$/);
   assert.equal(result.stdout.length, 64, "日语样例应输出 64 位，实际 " + String(result.stdout.length));
-  assert.equal(result.stdout, int64Bits(0n), "日语样例期望整数 0 的 64 位补码");
+  assert.equal(result.stdout, renderGlyphs(int64Bits(0n), JA), "日语样例期望整数 0 的 64 位补码（グ/ガ 字形）");
+  assert.equal(normalizeGlyphs(result.stdout, JA), int64Bits(0n), "归一化回 咕/嘎 后应与中文样例逐位相同");
+  assert.equal(Buffer.byteLength(result.stdout, "utf8"), 192, "64 个三字节字形 = 192 字节");
 });
 
-test("多方言样例：英语样例（故意混用大小写）与日语样例逐位相同", () => {
+test("多方言样例：.gu 文件输出英文位名 GU/GA（全大写），归一化后与日语样例逐位相同", () => {
   const ja = runExample("ガググガグ.ググ");
   const en = runExample("gugugaga.gu");
-  expectCleanRun(en, "gugugaga.gu");
-  assert.equal(en.stdout.length, 64, "英语样例应输出 64 位，实际 " + String(en.stdout.length));
-  assert.equal(en.stdout, int64Bits(0n), "英语样例期望整数 0 的 64 位补码");
-  assert.equal(en.stdout, ja.stdout, "英语样例与日语样例应逐位相同");
+  expectCleanRun(en, "gugugaga.gu", /^(GU|GA)*$/);
+  assert.equal(en.stdout.length, 128, "64 位 × 2 字母 = 128 字符，实际 " + String(en.stdout.length));
+  assert.equal(en.stdout, renderGlyphs(int64Bits(0n), EN), "英语样例期望整数 0 的 64 位补码（GU/GA 字形）");
+  // 同一份程序的三种写法：位必须一致，只有字形不同——所以比的是归一化后的位串。
+  assert.equal(normalizeGlyphs(en.stdout, EN), normalizeGlyphs(ja.stdout, JA), "英语样例与日语样例应归一化后逐位相同");
+  assert.notEqual(en.stdout, ja.stdout, "字形不同：两者不应逐字节相同");
+  assert.equal(Buffer.byteLength(en.stdout, "utf8"), 128, "128 个 ASCII 字母 = 128 字节");
 });
 
 test("多方言样例：check 对两份方言样例完全静默", () => {

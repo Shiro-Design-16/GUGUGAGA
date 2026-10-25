@@ -53,18 +53,18 @@ function illegalChar(ch: string, index: number): GgtError {
 }
 
 /**
- * 把输入文本解析成纯位流（SPEC §1 三方言逐位置等价）：
- *   0 = 咕 / グ / ぐ / GU（四个大小写都行）
- *   1 = 嘎 / ガ / が / GA（四个大小写都行）
- * 空白（含 U+3000）丢弃；其它字符报错，报字符、码点与从 1 开始的字符下标（按码点计）。
- * 英文位名是两个字母，落单的 g / G 按非法字符报错。
+ * 逐位置归一化（SPEC §1.2）：0 = 咕 / グ / ぐ / GU（大小写不分），
+ * 1 = 嘎 / ガ / が / GA（大小写不分），空白（含 U+3000）丢弃。
+ * 英文位名是两个字母，故按码点双指针扫描；其余字符交给 onIllegal——
+ * parseBits 抛错，normalizeBitsLoose 直接丢弃，读法完全一致。
  */
-export function parseBits(input: string): string {
+function scanBits(input: string, onIllegal: (ch: string, position: number) => void): string {
   const chars = Array.from(input);
   let out = "";
   let i = 0;
   while (i < chars.length) {
     const ch = chars[i];
+    const position = i + 1;
     if (WHITESPACE.has(ch)) {
       i += 1;
       continue;
@@ -79,22 +79,41 @@ export function parseBits(input: string): string {
       i += 1;
       continue;
     }
-    if (ch === "g" || ch === "G") {
-      const next = chars[i + 1];
-      if (next === "u" || next === "U") {
-        out += GU;
-        i += 2;
-        continue;
-      }
-      if (next === "a" || next === "A") {
-        out += GA;
-        i += 2;
-        continue;
-      }
+    const next = ch === "g" || ch === "G" ? chars[i + 1] : undefined;
+    if (next === "u" || next === "U") {
+      out += GU;
+      i += 2;
+      continue;
     }
-    throw illegalChar(ch, i + 1);
+    if (next === "a" || next === "A") {
+      out += GA;
+      i += 2;
+      continue;
+    }
+    onIllegal(ch, position);
+    i += 1;
   }
   return out;
+}
+
+/**
+ * 把输入文本解析成纯位流：三方言逐位置等价，空白丢弃；其它字符报错，
+ * 报字符、码点与从 1 开始的字符下标（按码点计）。落单的 g / G 同样报错。
+ */
+export function parseBits(input: string): string {
+  return scanBits(input, (ch, position) => {
+    throw illegalChar(ch, position);
+  });
+}
+
+/**
+ * 宽容归一化：与 parseBits 同一套位名，但非法字符与落单字母**丢弃而不报错**。
+ * 诊断帧解码用（SPEC §12.1：宿主警告不该毁掉整条流）。
+ */
+export function normalizeBitsLoose(input: string): string {
+  return scanBits(input, () => {
+    /* 丢弃 */
+  });
 }
 
 /** 把内部位流按方言渲染成输出串（--en 每位两个字母，长度翻倍）。 */

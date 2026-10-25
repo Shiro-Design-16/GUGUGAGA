@@ -24,6 +24,13 @@ const SHEBANG_DEMO = path.join(ROOT, "demos", "咕咕咕嘎.咕咕");
 
 /** stderr 允许的全部字符：咕、嘎、换行、空格（SPEC.md §12.1）。 */
 const DIAG_CHARSET = /^[咕嘎\n ]*$/;
+
+/** 方言帧的字符集：位还是那些位，只是 0/1 画成该后缀方言的字形（SPEC §1.4）。 */
+const DIAG_CHARSET_BY_DIALECT = {
+  zh: /^[咕嘎\n ]*$/,
+  ja: /^[グガ\n ]*$/,
+  en: /^[GUA\n ]*$/,
+} as const;
 /** stdout 允许的全部字符：只有程序位流。 */
 const BIT_CHARSET = /^[咕嘎]*$/;
 
@@ -45,6 +52,15 @@ function gg(args: string[], stdin?: string): Run {
 /** stderr 只含 咕/嘎/换行/空格——这是整机「对外可见面」的硬约束。 */
 function assertDiagPure(stderr: string): void {
   assert.match(stderr, DIAG_CHARSET, "stderr 只能出现 咕/嘎/换行/空格，实际=" + JSON.stringify(stderr));
+}
+
+/** 同上，但字符集按文件后缀方言：.ググ 只许 グ/ガ，.gu 只许 G/U/A。 */
+function assertDiagDialect(stderr: string, dialect: keyof typeof DIAG_CHARSET_BY_DIALECT): void {
+  assert.match(
+    stderr,
+    DIAG_CHARSET_BY_DIALECT[dialect],
+    "stderr 只能是 " + dialect + " 方言的字形/换行/空格，实际=" + JSON.stringify(stderr),
+  );
 }
 
 /** 解出唯一一帧，并顺手断言字符集纯净。 */
@@ -279,11 +295,20 @@ test("stripShebang：换成空行以保住行号，非首行不动", () => {
 });
 
 test("后缀识别大小写不敏感：.GU / .gugugaga / .ググ 都按程序路径隐式执行（读不到 → 23 号帧）", () => {
-  const names = ["不存在.GU", "不存在.Gu", "不存在.gu", "不存在.GUGUGAGA", "不存在.ググ", "不存在.咕咕"];
-  for (const name of names) {
+  const cases: [string, "zh" | "ja" | "en"][] = [
+    ["不存在.GU", "en"],
+    ["不存在.Gu", "en"],
+    ["不存在.gu", "en"],
+    ["不存在.GUGUGAGA", "en"],
+    ["不存在.ググ", "ja"],
+    ["不存在.咕咕", "zh"],
+  ];
+  for (const [name, dialect] of cases) {
     const res = gg([path.join(ROOT, name)]);
     assert.equal(res.status, 3, name + " 应走到读文件失败（说明被当成程序）");
-    const f = frame(res);
+    // 读文件失败也有确切文件名，方言就由后缀决定：帧字形跟着变（SPEC §1.4）。
+    assertDiagDialect(res.stderr, dialect);
+    const f = decodeOne(res.stderr);
     assert.equal(f.code, 23, name + " 应被识别为程序路径，实际帧=" + JSON.stringify(f));
     assert.ok(f.message.includes("无法读取文件"), "实际=" + f.message);
   }
@@ -296,6 +321,7 @@ test("省略动作词也能直接跑方言样例（examples/ガググガグ.グ�
   const res = gg([path.join(ROOT, "examples", "ガググガグ.ググ")]);
   assert.equal(res.status, 0, "stderr=" + res.stderr);
   assert.equal(res.stdout.length, 64);
-  assert.ok(isBits(res.stdout), "stdout 只应是位流");
+  // .ググ 的 stdout 是日语字形（仍是 64 位，只是 0/1 画成 グ/ガ）——见 SPEC §1.4。
+  assert.match(res.stdout, /^[グガ]+$/, "stdout 只应是日语位流：" + JSON.stringify(res.stdout));
   assert.equal(res.stderr, "");
 });

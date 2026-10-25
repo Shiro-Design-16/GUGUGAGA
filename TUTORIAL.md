@@ -143,13 +143,13 @@ printf 300 | node translator/bin/ggt.ts encode --int64 --as-literal
 ```
 
 ```text
-GUGUGAGA! GAGUGAGAGU
-    GU: GAGAGA?GA
+GUGUGAGA! GAGUGAGAGAGU
+    GU:GAGAGA?GA
 ```
 
-仓库里就有两个方言样例：`examples/ガググガグ.ググ`（日语，缩进用全角空格）与 `examples/gugugaga.gu`（英语，大小写混写）。它们与中文样例的位流逐字节相同。
+仓库里就有两个方言样例：`examples/ガググガグ.ググ`（日语，缩进用全角空格）与 `examples/gugugaga.gu`（英语，大小写混写）。它们与中文样例是同一份程序：把位名归一化后，三者的位流逐位相同。
 
-**外壳不跟随方言**：stdout 的位流、stderr 的诊断帧永远用中文位名 `咕`/`嘎`，翻译器只需要一套字母表。
+**输出字形跟随文件后缀**：`.咕咕` 的程序输出与诊断帧是 `咕`/`嘎`，`.ググ` 是 `グ`/`ガ`，`.gu` 是 `GU`/`GA`——同一个程序的 stdout 与 stderr 永远同方言。帮助与命令行用法错误没有具体程序，恒定用中文。把位名归一化后三种方言逐位相同，所以翻译器只要认一套字母表（`ggt decode --diag` 三套都吃）。
 
 ---
 
