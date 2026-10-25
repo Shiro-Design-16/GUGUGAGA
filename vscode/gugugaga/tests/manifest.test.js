@@ -119,8 +119,30 @@ test("icon：运行按钮用主题图标，颜色随深/浅色主题", function 
   assert.equal(manifest.contributes.menus["editor/title"][0].icon, "$(play)");
   // 曾经的 editor/title/run 会在标题栏里再渲染一个按钮：同一页面出现两个 ▶。
   assert.equal(manifest.contributes.menus["editor/title/run"], undefined, "不要再往 editor/title/run 里放命令");
-  const raw = fs.readFileSync(path.join(EXT_ROOT, "package.json"), "utf8");
-  assert.equal(raw.includes("media/"), false, "清单里不该再有自带图标路径");
+
+  const language = manifest.contributes.languages[0];
+  const files = [manifest.icon, language.icon.light, language.icon.dark];
+  files.forEach(function (rel) {
+    const abs = path.join(EXT_ROOT, rel.replace(/^\.\//, ""));
+    assert.ok(fs.existsSync(abs), "图标文件不存在：" + rel);
+  });
+  assert.equal(path.extname(manifest.icon), ".png", "扩展图标用 PNG，市场与深色主题都稳");
+  assert.notEqual(language.icon.light, language.icon.dark, "文件图标要分深浅两版，否则深色主题看不见");
+  // 图标路径只允许给「扩展图标」与「文件图标」；命令/菜单图标必须是 codicon。
+  const bundled = [manifest.icon, manifest.contributes.languages[0].icon];
+  bundled.forEach(function (entry) {
+    const paths = typeof entry === "string" ? [entry] : [entry.light, entry.dark];
+    paths.forEach(function (rel) {
+      assert.ok(rel && rel.indexOf("./media/") === 0, "图标应放在 media/ 下：" + String(rel));
+    });
+  });
+  const menuItems = [];
+  Object.keys(manifest.contributes.menus).forEach(function (slot) {
+    manifest.contributes.menus[slot].forEach(function (item) { menuItems.push(item); });
+  });
+  commands.concat(menuItems).forEach(function (item) {
+    assert.equal(typeof item.icon === "string" && item.icon.indexOf("media/") >= 0, false, "命令与菜单不能用自带图标");
+  });
 });
 
 test("languages：四种后缀齐全，且额外含分解写法的 .ググ", function () {

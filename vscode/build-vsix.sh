@@ -6,7 +6,7 @@ HERE=$(cd "$(dirname "$0")" && pwd)
 EXT="$HERE/gugugaga"
 OUT="${1:-$HERE/gugugaga-language.vsix}"
 
-for f in package.json language-configuration.json syntaxes/gugugaga.tmLanguage.json snippets/gugugaga.json src/extension.js; do
+for f in package.json language-configuration.json syntaxes/gugugaga.tmLanguage.json snippets/gugugaga.json src/extension.js media/icon.png media/icon.svg media/icon-dark.svg; do
   if [ ! -f "$EXT/$f" ]; then
     echo "缺少文件：$EXT/$f" >&2
     exit 1
@@ -23,13 +23,14 @@ fi
 
 STAGE=$(mktemp -d "${TMPDIR:-/tmp}/ggvsix.XXXXXX")
 trap 'rm -rf "$STAGE"' EXIT
-mkdir -p "$STAGE/extension/src" "$STAGE/extension/syntaxes" "$STAGE/extension/snippets"
+mkdir -p "$STAGE/extension/src" "$STAGE/extension/syntaxes" "$STAGE/extension/snippets" "$STAGE/extension/media"
 
 # 只搬运行时需要的内容（.vscodeignore 的等价物，测试与契约不进包）
 cp "$EXT/package.json" "$EXT/language-configuration.json" "$STAGE/extension/"
 cp "$EXT"/src/*.js "$STAGE/extension/src/"
 cp "$EXT"/syntaxes/*.json "$STAGE/extension/syntaxes/"
 cp "$EXT"/snippets/*.json "$STAGE/extension/snippets/"
+cp "$EXT"/media/* "$STAGE/extension/media/"
 if [ -f "$EXT/README.md" ]; then cp "$EXT/README.md" "$STAGE/extension/"; fi
 
 cat > "$STAGE/[Content_Types].xml" <<XML
@@ -38,6 +39,8 @@ cat > "$STAGE/[Content_Types].xml" <<XML
   <Default Extension="json" ContentType="application/json" />
   <Default Extension="js" ContentType="application/javascript" />
   <Default Extension="md" ContentType="text/markdown" />
+  <Default Extension="png" ContentType="image/png" />
+  <Default Extension="svg" ContentType="image/svg+xml" />
   <Default Extension="txt" ContentType="text/plain" />
   <Default Extension="vsixmanifest" ContentType="text/xml" />
   <Default Extension="xml" ContentType="text/xml" />
