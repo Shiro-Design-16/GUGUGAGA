@@ -16,8 +16,9 @@
   "scripts": {
     "test": "node --test \"tests/**/*.test.ts\"",
     "test:vscode": "node --test \"vscode/gugugaga/tests/*.test.js\"",
-    "test:all": "node --test \"tests/**/*.test.ts\" && (cd translator && node --test \"tests/**/*.test.ts\") && node --test \"vscode/gugugaga/tests/*.test.js\" && node scripts/check-translations.mjs",
-    "test:i18n": "node scripts/check-translations.mjs"
+    "test:all": "node --test \"tests/**/*.test.ts\" && (cd translator && node --test \"tests/**/*.test.ts\") && node --test \"vscode/gugugaga/tests/*.test.js\" && node scripts/md-bits.mjs --check && node scripts/check-translations.mjs",
+    "test:i18n": "node scripts/check-translations.mjs",
+    "test:docs": "node scripts/md-bits.mjs --check"
   },
   "license": "MIT",
   "author": "Shiro-Design-16",

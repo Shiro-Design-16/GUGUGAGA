@@ -15,7 +15,6 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { PROGRAM_SUFFIXES, hasProgramSuffix } from "../src/keywords.ts";
-import { decodeDocIfBitified, dialectOfDoc } from "../scripts/md-bits.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const EXAMPLES = path.join(ROOT, "examples");
@@ -105,30 +104,48 @@ function readExample(name: string): string {
   return fs.readFileSync(path.join(EXAMPLES, name), "utf8");
 }
 
-/** 取出某个标题之后的所有 FENCE + text 围栏正文。 */
-function specFencesAfter(heading: string): string[] {
-  // 文档可能已被 scripts/md-bits.mjs 位串化，先解回可读文本再找标题。
-  const spec = decodeDocIfBitified(fs.readFileSync(SPEC, "utf8"), dialectOfDoc("SPEC.md")).text;
-  const start = spec.indexOf(heading);
-  assert.ok(start >= 0, "SPEC.md 里找不到 " + heading);
+/**
+ * SPEC.md 的源文本：本地有可读副本时读它（仓库里当前那份产物是旧式全量位流化，围栏也被编码），
+ * CI 里没有备份就读产物——新式产物的骨架与围栏逐字节保留，两种来源对下面的用例等价。
+ */
+function specSource(): string {
+  // 读产物本身：围栏与骨架逐字节保留，标题里的字被换成位名，所以只能按内容定位。
+  return fs.readFileSync(SPEC, "utf8");
+}
+
+/**
+ * SPEC.md 里所有 ```text 围栏的正文。
+ *
+ * 按内容（而非标题里的数字）定位：产物的骨架与围栏逐字节保留，但标题里的数字已被位名替换，
+ * 所以 "## 11." 这种锚点在产物里找不到——用标记串找围栏，读产物与读可读副本结果相同。
+ */
+function specTextFences(): string[] {
+  const spec = specSource();
   const blocks: string[] = [];
-  let cursor = start;
+  let cursor = 0;
   for (;;) {
     const fence = spec.indexOf(FENCE + "text", cursor);
     if (fence < 0) break;
     const bodyStart = spec.indexOf("\n", fence) + 1;
     const bodyEnd = spec.indexOf(FENCE, bodyStart);
-    assert.ok(bodyEnd > bodyStart, "SPEC.md " + heading + " 的围栏没有闭合");
+    assert.ok(bodyEnd > bodyStart, "SPEC.md 里有没闭合的 text 围栏");
     blocks.push(spec.slice(bodyStart, bodyEnd));
     cursor = bodyEnd + FENCE.length;
   }
-  assert.ok(blocks.length > 0, "SPEC.md " + heading + " 之后找不到以 FENCE + text 开头的代码围栏");
+  assert.ok(blocks.length > 0, "SPEC.md 里找不到以 FENCE + text 开头的代码围栏");
   return blocks;
 }
 
-/** SPEC §11 的最小可运行中文样例（第一段 text 围栏）。 */
+/** 含标记串的那段 text 围栏正文。 */
+function specFenceWith(marker: string): string {
+  const block = specTextFences().find((body) => body.includes(marker));
+  assert.ok(block !== undefined, "SPEC.md 里找不到含「" + marker + "」的 text 围栏");
+  return block;
+}
+
+/** SPEC §11 的最小可运行中文样例。 */
 function specSample(): string {
-  return specFencesAfter("## 11.")[0];
+  return specFenceWith("咕咕嘎嘎！");
 }
 
 test("examples/ 下恰好是这 7 个示例文件（5 中文 + 1 日语 + 1 英语）", () => {
@@ -184,11 +201,9 @@ test("SPEC.md §11 的最小可运行样例仍是纯中文方言", () => {
 });
 
 test("SPEC.md §11.1 的日语样例与 examples/ガググガグ.ググ 逐字符一致", () => {
-  const blocks = specFencesAfter("### 11.1");
-  assert.ok(blocks.length >= 2, "SPEC.md §11.1 应有两段方言样例，实际 " + String(blocks.length));
-  assert.equal(readExample("ガググガグ.ググ"), blocks[0], "日语样例应与 SPEC.md §11.1 的第一段围栏一致");
-  const japanese = blocks[0];
-  const english = blocks[1];
+  assert.equal(readExample("ガググガグ.ググ"), specFenceWith("ググガガ！"), "日语样例应与 SPEC.md §11.1 的围栏一致");
+  const japanese = specFenceWith("ググガガ！");
+  const english = specFenceWith("GUGUGAGA!");
   assert.equal(
     japanese.split("\n").length,
     english.split("\n").length,

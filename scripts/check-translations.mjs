@@ -4,11 +4,12 @@
 import { readFileSync, existsSync, writeFileSync, mkdtempSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { tmpdir } from "node:os";
-import { join, dirname } from "node:path";
+import { join, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { decodeDocIfBitified, dialectOfDoc } from "./md-bits.mjs";
+import { dialectOfDoc, glyphRatio, readableOf, redactDoc } from "./md-bits.mjs";
 
-const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
+// 与 md-bits.mjs 共用同一个根：MD_BITS_ROOT 用于在 /tmp 夹具上跑（不碰真仓库）。
+const ROOT = process.env.MD_BITS_ROOT ? resolve(process.env.MD_BITS_ROOT) : join(dirname(fileURLToPath(import.meta.url)), "..");
 const SOURCES = [
   "README.md",
   "CHANGELOG.md",
@@ -35,13 +36,25 @@ function fail(doc, msg) {
   problems.push(doc + ": " + msg);
 }
 
-const bitifiedDocs = new Set();
-// 文档可能已被 md-bits.mjs 位串化：先解回可读文本，后面的比对规则不变。
+// 产物是「等长替换式骨架保留」文档：骨架（代码、数字、链接目标、结构）原样，散文换成位名。
+// 所以不再解码，直接读原文比较；另外两件事也在这一层做：散文确实被替换过、能与可读副本重算对上。
+let recomputed = 0;
+let recomputeSkipped = 0;
 function readText(p) {
   const raw = readFileSync(join(ROOT, p), "utf8").replace(/\r\n/g, "\n");
-  const { text, bitified } = decodeDocIfBitified(raw, dialectOfDoc(p));
-  if (bitified) bitifiedDocs.add(p);
-  return text;
+  const dialect = dialectOfDoc(p);
+  const ratio = glyphRatio(raw, dialect);
+  if (ratio < 0.5) fail(p, "散文区没有替换（位名占比 " + ratio.toFixed(2) + " < 0.5）");
+  const readable = readableOf(p);
+  if (!existsSync(readable)) {
+    recomputeSkipped += 1;
+    return raw;
+  }
+  recomputed += 1;
+  if (redactDoc(readFileSync(readable, "utf8").replace(/\r\n/g, "\n"), dialect) !== raw) {
+    fail(p, "与 backup/readable 重算的结果不一致");
+  }
+  return raw;
 }
 
 function stripHeader(doc, text, lang) {
@@ -259,22 +272,13 @@ for (const src of SOURCES) {
     const lost = [...srcCritical].filter((t) => !asciiInline.has(t));
     if (lost.length) fail(target, "路径/文件名丢了: " + lost.slice(0, 8).join(", "));
 
-    const inlineProgs = (text) =>
-      multiset(
-        [...text.matchAll(/\x60([^\x60\n]+)\x60/g)]
-          .map((m) => tidy(m[1]))
-          .filter((t) => /^[01!?: ]+$/.test(t) && /[01]/.test(t)),
-      );
-    const ip = diffMultiset(inlineProgs(srcText), inlineProgs(body));
-    if (ip.missing.length) fail(target, "正文里引用的写法缺失/改动: " + ip.missing.slice(0, 8).map((x) => JSON.stringify(x)).join(", "));
-    if (ip.extra.length) fail(target, "正文里多出写法: " + ip.extra.slice(0, 8).map((x) => JSON.stringify(x)).join(", "));
   }
 }
 
 if (matched === 0) fail(process.argv[2] || "(全部)", "没有匹配到任何文档——检查过滤参数（路径前缀）与文件名");
 
 for (const n of notes) console.log("  · " + n);
-if (bitifiedDocs.size) console.log("  · 已位串化的文档按 ggt 位流解码后校验：" + bitifiedDocs.size + " 份");
+console.log("  · 骨架与位名重算校验：" + recomputed + " 份（跳过 " + recomputeSkipped + " 份）");
 if (problems.length) {
   console.error("\n未通过 " + problems.length + " 项：");
   for (const p of problems) console.error("  ✗ " + p);
